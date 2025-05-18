@@ -1,0 +1,214 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{8EF7B021-67F0-48A2-8FBC-4B8A4883A0C7}|ReactApp1.Server\\ReactApp1.Server.csproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.server\\models\\component.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{8EF7B021-67F0-48A2-8FBC-4B8A4883A0C7}|ReactApp1.Server\\ReactApp1.Server.csproj|solutionrelative:reactapp1.server\\models\\component.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\main.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\main.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\index.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\index.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\app.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\app.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\context\\authcontext.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\context\\authcontext.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\app.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\app.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\types\\index.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\types\\index.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\pages\\projectmanagerdashboard.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\pages\\projectmanagerdashboard.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\pages\\loginpage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\pages\\loginpage.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\pages\\directordashboard.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\pages\\directordashboard.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\pages\\developerdashboard.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\pages\\developerdashboard.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|e:\\esisa\\ingenierie logicielle\\reactapp1\\reactapp1.client\\src\\lib\\utils.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{372AB1E8-7CBB-9DB4-7313-847C4133320E}|reactapp1.client\\reactapp1.client.esproj|solutionrelative:reactapp1.client\\src\\lib\\utils.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Component.razor",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\ReactApp1.Server\\Models\\Component.razor",
+              "RelativeDocumentMoniker": "ReactApp1.Server\\Models\\Component.razor",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\ReactApp1.Server\\Models\\Component.razor",
+              "RelativeToolTip": "ReactApp1.Server\\Models\\Component.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-05-18T14:54:04.635Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "main.tsx",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\main.tsx",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\main.tsx",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\main.tsx",
+              "RelativeToolTip": "reactapp1.client\\src\\main.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-05-18T12:23:28.605Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "index.css",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\index.css",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\index.css",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\index.css",
+              "RelativeToolTip": "reactapp1.client\\src\\index.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-05-18T12:23:01.627Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "App.css",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\App.css",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\App.css",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\App.css",
+              "RelativeToolTip": "reactapp1.client\\src\\App.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-05-18T12:21:22.596Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "index.ts",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\types\\index.ts",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\types\\index.ts",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\types\\index.ts",
+              "RelativeToolTip": "reactapp1.client\\src\\types\\index.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-05-18T11:47:29.485Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ProjectManagerDashboard.tsx",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\pages\\ProjectManagerDashboard.tsx",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\pages\\ProjectManagerDashboard.tsx",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\pages\\ProjectManagerDashboard.tsx",
+              "RelativeToolTip": "reactapp1.client\\src\\pages\\ProjectManagerDashboard.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-05-18T11:47:26.689Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "LoginPage.tsx",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\pages\\LoginPage.tsx",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\pages\\LoginPage.tsx",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\pages\\LoginPage.tsx",
+              "RelativeToolTip": "reactapp1.client\\src\\pages\\LoginPage.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-05-18T11:47:25.394Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "DirectorDashboard.tsx",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\pages\\DirectorDashboard.tsx",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\pages\\DirectorDashboard.tsx",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\pages\\DirectorDashboard.tsx",
+              "RelativeToolTip": "reactapp1.client\\src\\pages\\DirectorDashboard.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-05-18T11:47:24.359Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "DeveloperDashboard.tsx",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\pages\\DeveloperDashboard.tsx",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\pages\\DeveloperDashboard.tsx",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\pages\\DeveloperDashboard.tsx",
+              "RelativeToolTip": "reactapp1.client\\src\\pages\\DeveloperDashboard.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-05-18T11:47:21.96Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "utils.ts",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\lib\\utils.ts",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\lib\\utils.ts",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\lib\\utils.ts",
+              "RelativeToolTip": "reactapp1.client\\src\\lib\\utils.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-05-18T11:47:16.712Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "AuthContext.tsx",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\context\\AuthContext.tsx",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\context\\AuthContext.tsx",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\context\\AuthContext.tsx",
+              "RelativeToolTip": "reactapp1.client\\src\\context\\AuthContext.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEEAAABaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-05-18T11:47:14.359Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "App.tsx",
+              "DocumentMoniker": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\App.tsx",
+              "RelativeDocumentMoniker": "reactapp1.client\\src\\App.tsx",
+              "ToolTip": "E:\\ESISA\\ingenierie logicielle\\ReactApp1\\reactapp1.client\\src\\App.tsx",
+              "RelativeToolTip": "reactapp1.client\\src\\App.tsx",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2025-05-18T11:47:35.55Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
