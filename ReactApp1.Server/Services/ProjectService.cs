@@ -24,6 +24,7 @@ namespace ReactApp1.Server.Services
 
         public async Task<Project> GetProjectByIdAsync(int id)
         {
+#pragma warning disable CS8603 // Possible null reference return.
             return await _context.Projects
                 .Include(p => p.ProjectManager)
                 .Include(p => p.Technologies)
@@ -33,6 +34,7 @@ namespace ReactApp1.Server.Services
                 .Include(p => p.Tasks)
                     .ThenInclude(t => t.Progresses)
                 .FirstOrDefaultAsync(p => p.Id == id);
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         public async Task<bool> CreateProjectAsync(Project project)
