@@ -1,34 +1,71 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { Toaster } from './components/ui/toaster'
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import HomePage from "./pages/HomePage"
+import LoginPage from "./pages/LoginPage"
+import RegisterPage from "./pages/RegisterPage"
+import DirectorDashboard from "./pages/director/DirectorDashboard"
+import NewProject from "./pages/director/NewProject"
+import ProjectsIndex from "./pages/director/ProjectsIndex"
+import ProjectDetails from "./pages/director/ProjectDetails"
+import DeleteProject from "./pages/director/DeleteProject"
+import EditProject from "./pages/director/EditProject"
+import CreateProject from "./pages/director/CreateProject"
+import ManagerDashboard from "./pages/manager/ManagerDashboard"
+import ManagerProjectDetails from "./pages/manager/ManagerProjectDetails"
+import AddTechnologies from "./pages/manager/AddTechnologies"
+import FormTeam from "./pages/manager/FormTeam"
+import AssignTasks from "./pages/manager/AssignTasks"
+import DeveloperDashboard from "./pages/developer/DeveloperDashboard"
+import DeveloperProjectDetails from "./pages/developer/DeveloperProjectDetails"
+import DeveloperProfile from "./pages/developer/DeveloperProfile"
+import UpdateProgress from "./pages/developer/UpdateProgress"
+import ViewTasks from "./pages/developer/ViewTasks"
+import ViewProjects from "./pages/developer/ViewProjects"
+import EditProfile from "./pages/developer/EditProfile"
+import { Toaster } from "./components/ui/toaster"
+import { ThemeProvider } from "./components/theme-provider"
 
-// Pages
-import LoginPage from './pages/LoginPage'
-import DirectorDashboard from './pages/DirectorDashboard'
-import ProjectManagerDashboard from './pages/ProjectManagerDashboard'
-import DeveloperDashboard from './pages/DeveloperDashboard'
+function App() {
+  return (
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-// Context
-import { AuthProvider } from './context/AuthContext'
+          {/* Director routes */}
+          <Route path="/director/dashboard" element={<DirectorDashboard />} />
+          <Route path="/director/projects/new" element={<NewProject />} />
+          <Route path="/director/projects/index" element={<ProjectsIndex />} />
+          <Route path="/director/projects/details/:id" element={<ProjectDetails />} />
+          <Route path="/director/projects/delete/:id" element={<DeleteProject />} />
+          <Route path="/director/projects/edit/:id" element={<EditProject />} />
+          <Route path="/director/projects/create" element={<CreateProject />} />
 
-// Create a client
-const queryClient = new QueryClient()
+          {/* Manager routes */}
+          <Route path="/manager/dashboard" element={<ManagerDashboard />} />
+          <Route path="/manager/projects/:id" element={<ManagerProjectDetails />} />
+          <Route path="/manager/projects/add-technologies/:id" element={<AddTechnologies />} />
+          <Route path="/manager/projects/form-team/:id" element={<FormTeam />} />
+          <Route path="/manager/projects/assign-tasks/:id" element={<AssignTasks />} />
 
-export default function App() {
-    return (
-        <QueryClientProvider client={queryClient}>
-            <Router>
-                <AuthProvider>
-                    <Routes>
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route path="/director/*" element={<DirectorDashboard />} />
-                        <Route path="/project-manager/*" element={<ProjectManagerDashboard />} />
-                        <Route path="/developer/*" element={<DeveloperDashboard />} />
-                        <Route path="*" element={<Navigate to="/login" replace />} />
-                    </Routes>
-                    <Toaster />
-                </AuthProvider>
-            </Router>
-        </QueryClientProvider>
-    )
+          {/* Developer routes */}
+          <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+          <Route path="/developer/projects/:id" element={<DeveloperProjectDetails />} />
+          <Route path="/developer/profile" element={<DeveloperProfile />} />
+          <Route path="/developer/tasks/update-progress/:id" element={<UpdateProgress />} />
+          <Route path="/developer/tasks/view" element={<ViewTasks />} />
+          <Route path="/developer/projects/view" element={<ViewProjects />} />
+          <Route path="/developer/profile/edit" element={<EditProfile />} />
+
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster />
+      </Router>
+    </ThemeProvider>
+  )
 }
+
+export default App

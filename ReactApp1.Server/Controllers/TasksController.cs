@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ReactApp1.Server.Interfaces;
 using ReactApp1.Server.Models;
 
 namespace ReactApp1.Server.Controllers

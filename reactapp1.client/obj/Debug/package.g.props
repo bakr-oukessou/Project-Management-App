@@ -25,7 +25,57 @@
     <PackageJsonDependenciesReactDom Condition="$(PackageJsonDependenciesReactDom) == ''">^19.1.0</PackageJsonDependenciesReactDom>
     <PackageJsonDependenciesReactRouterDom Condition="$(PackageJsonDependenciesReactRouterDom) == ''">^7.6.0</PackageJsonDependenciesReactRouterDom>
     <PackageJsonDependenciesTailwindMerge Condition="$(PackageJsonDependenciesTailwindMerge) == ''">^3.3.0</PackageJsonDependenciesTailwindMerge>
+    <PackageJsonDependenciesHookformResolvers Condition="$(PackageJsonDependenciesHookformResolvers) == ''">^3.9.1</PackageJsonDependenciesHookformResolvers>
+    <PackageJsonDependenciesRadixUiReactAccordion Condition="$(PackageJsonDependenciesRadixUiReactAccordion) == ''">1.2.2</PackageJsonDependenciesRadixUiReactAccordion>
+    <PackageJsonDependenciesRadixUiReactAlertDialog Condition="$(PackageJsonDependenciesRadixUiReactAlertDialog) == ''">1.1.4</PackageJsonDependenciesRadixUiReactAlertDialog>
+    <PackageJsonDependenciesRadixUiReactAspectRatio Condition="$(PackageJsonDependenciesRadixUiReactAspectRatio) == ''">1.1.1</PackageJsonDependenciesRadixUiReactAspectRatio>
+    <PackageJsonDependenciesRadixUiReactAvatar Condition="$(PackageJsonDependenciesRadixUiReactAvatar) == ''">1.1.2</PackageJsonDependenciesRadixUiReactAvatar>
+    <PackageJsonDependenciesRadixUiReactCollapsible Condition="$(PackageJsonDependenciesRadixUiReactCollapsible) == ''">1.1.2</PackageJsonDependenciesRadixUiReactCollapsible>
+    <PackageJsonDependenciesRadixUiReactContextMenu Condition="$(PackageJsonDependenciesRadixUiReactContextMenu) == ''">2.2.4</PackageJsonDependenciesRadixUiReactContextMenu>
+    <PackageJsonDependenciesRadixUiReactDropdownMenu Condition="$(PackageJsonDependenciesRadixUiReactDropdownMenu) == ''">2.1.4</PackageJsonDependenciesRadixUiReactDropdownMenu>
+    <PackageJsonDependenciesRadixUiReactHoverCard Condition="$(PackageJsonDependenciesRadixUiReactHoverCard) == ''">1.1.4</PackageJsonDependenciesRadixUiReactHoverCard>
+    <PackageJsonDependenciesRadixUiReactMenubar Condition="$(PackageJsonDependenciesRadixUiReactMenubar) == ''">1.1.4</PackageJsonDependenciesRadixUiReactMenubar>
+    <PackageJsonDependenciesRadixUiReactNavigationMenu Condition="$(PackageJsonDependenciesRadixUiReactNavigationMenu) == ''">1.2.3</PackageJsonDependenciesRadixUiReactNavigationMenu>
+    <PackageJsonDependenciesRadixUiReactPopover Condition="$(PackageJsonDependenciesRadixUiReactPopover) == ''">1.1.4</PackageJsonDependenciesRadixUiReactPopover>
+    <PackageJsonDependenciesRadixUiReactRadioGroup Condition="$(PackageJsonDependenciesRadixUiReactRadioGroup) == ''">1.2.2</PackageJsonDependenciesRadixUiReactRadioGroup>
+    <PackageJsonDependenciesRadixUiReactScrollArea Condition="$(PackageJsonDependenciesRadixUiReactScrollArea) == ''">1.2.2</PackageJsonDependenciesRadixUiReactScrollArea>
+    <PackageJsonDependenciesRadixUiReactSeparator Condition="$(PackageJsonDependenciesRadixUiReactSeparator) == ''">1.1.1</PackageJsonDependenciesRadixUiReactSeparator>
+    <PackageJsonDependenciesRadixUiReactSlot Condition="$(PackageJsonDependenciesRadixUiReactSlot) == ''">1.1.1</PackageJsonDependenciesRadixUiReactSlot>
+    <PackageJsonDependenciesRadixUiReactSwitch Condition="$(PackageJsonDependenciesRadixUiReactSwitch) == ''">1.1.2</PackageJsonDependenciesRadixUiReactSwitch>
+    <PackageJsonDependenciesRadixUiReactToggle Condition="$(PackageJsonDependenciesRadixUiReactToggle) == ''">1.1.1</PackageJsonDependenciesRadixUiReactToggle>
+    <PackageJsonDependenciesRadixUiReactToggleGroup Condition="$(PackageJsonDependenciesRadixUiReactToggleGroup) == ''">1.1.1</PackageJsonDependenciesRadixUiReactToggleGroup>
+    <PackageJsonDependenciesRadixUiReactTooltip Condition="$(PackageJsonDependenciesRadixUiReactTooltip) == ''">1.1.6</PackageJsonDependenciesRadixUiReactTooltip>
+    <PackageJsonDependenciesVitejsPluginReact Condition="$(PackageJsonDependenciesVitejsPluginReact) == ''">latest</PackageJsonDependenciesVitejsPluginReact>
+    <PackageJsonDependenciesAutoprefixer Condition="$(PackageJsonDependenciesAutoprefixer) == ''">^10.4.20</PackageJsonDependenciesAutoprefixer>
+    <PackageJsonDependenciesCmdk Condition="$(PackageJsonDependenciesCmdk) == ''">1.0.4</PackageJsonDependenciesCmdk>
+    <PackageJsonDependenciesDateFns Condition="$(PackageJsonDependenciesDateFns) == ''">4.1.0</PackageJsonDependenciesDateFns>
+    <PackageJsonDependenciesEmblaCarouselReact Condition="$(PackageJsonDependenciesEmblaCarouselReact) == ''">8.5.1</PackageJsonDependenciesEmblaCarouselReact>
+    <PackageJsonDependenciesInputOtp Condition="$(PackageJsonDependenciesInputOtp) == ''">1.4.1</PackageJsonDependenciesInputOtp>
+    <PackageJsonDependenciesJiti Condition="$(PackageJsonDependenciesJiti) == ''">latest</PackageJsonDependenciesJiti>
+    <PackageJsonDependenciesLess Condition="$(PackageJsonDependenciesLess) == ''">latest</PackageJsonDependenciesLess>
+    <PackageJsonDependenciesLightningcss Condition="$(PackageJsonDependenciesLightningcss) == ''">latest</PackageJsonDependenciesLightningcss>
+    <PackageJsonDependenciesNext Condition="$(PackageJsonDependenciesNext) == ''">15.2.4</PackageJsonDependenciesNext>
+    <PackageJsonDependenciesNextThemes Condition="$(PackageJsonDependenciesNextThemes) == ''">^0.4.4</PackageJsonDependenciesNextThemes>
+    <PackageJsonDependenciesPath Condition="$(PackageJsonDependenciesPath) == ''">latest</PackageJsonDependenciesPath>
+    <PackageJsonDependenciesReactDayPicker Condition="$(PackageJsonDependenciesReactDayPicker) == ''">8.10.1</PackageJsonDependenciesReactDayPicker>
+    <PackageJsonDependenciesReactHookForm Condition="$(PackageJsonDependenciesReactHookForm) == ''">^7.54.1</PackageJsonDependenciesReactHookForm>
+    <PackageJsonDependenciesReactResizablePanels Condition="$(PackageJsonDependenciesReactResizablePanels) == ''">^2.1.7</PackageJsonDependenciesReactResizablePanels>
+    <PackageJsonDependenciesRecharts Condition="$(PackageJsonDependenciesRecharts) == ''">2.15.0</PackageJsonDependenciesRecharts>
+    <PackageJsonDependenciesSass Condition="$(PackageJsonDependenciesSass) == ''">latest</PackageJsonDependenciesSass>
+    <PackageJsonDependenciesSassEmbedded Condition="$(PackageJsonDependenciesSassEmbedded) == ''">latest</PackageJsonDependenciesSassEmbedded>
+    <PackageJsonDependenciesSonner Condition="$(PackageJsonDependenciesSonner) == ''">^1.7.1</PackageJsonDependenciesSonner>
+    <PackageJsonDependenciesStylus Condition="$(PackageJsonDependenciesStylus) == ''">latest</PackageJsonDependenciesStylus>
+    <PackageJsonDependenciesSugarss Condition="$(PackageJsonDependenciesSugarss) == ''">latest</PackageJsonDependenciesSugarss>
+    <PackageJsonDependenciesTailwindcssAnimate Condition="$(PackageJsonDependenciesTailwindcssAnimate) == ''">^1.0.7</PackageJsonDependenciesTailwindcssAnimate>
+    <PackageJsonDependenciesTerser Condition="$(PackageJsonDependenciesTerser) == ''">latest</PackageJsonDependenciesTerser>
+    <PackageJsonDependenciesTsx Condition="$(PackageJsonDependenciesTsx) == ''">latest</PackageJsonDependenciesTsx>
+    <PackageJsonDependenciesVaul Condition="$(PackageJsonDependenciesVaul) == ''">^0.9.6</PackageJsonDependenciesVaul>
+    <PackageJsonDependenciesVite Condition="$(PackageJsonDependenciesVite) == ''">latest</PackageJsonDependenciesVite>
+    <PackageJsonDependenciesYaml Condition="$(PackageJsonDependenciesYaml) == ''">latest</PackageJsonDependenciesYaml>
+    <PackageJsonDependenciesZod Condition="$(PackageJsonDependenciesZod) == ''">^3.24.1</PackageJsonDependenciesZod>
     <PackageJsonDevdependenciesEslintJs Condition="$(PackageJsonDevdependenciesEslintJs) == ''">^9.25.0</PackageJsonDevdependenciesEslintJs>
+    <PackageJsonDevdependenciesTailwindcssPostcss Condition="$(PackageJsonDevdependenciesTailwindcssPostcss) == ''">^4.1.7</PackageJsonDevdependenciesTailwindcssPostcss>
+    <PackageJsonDevdependenciesTailwindcssPostcss7Compat Condition="$(PackageJsonDevdependenciesTailwindcssPostcss7Compat) == ''">^2.2.17</PackageJsonDevdependenciesTailwindcssPostcss7Compat>
     <PackageJsonDevdependenciesTypesNode Condition="$(PackageJsonDevdependenciesTypesNode) == ''">^22</PackageJsonDevdependenciesTypesNode>
     <PackageJsonDevdependenciesTypesReact Condition="$(PackageJsonDevdependenciesTypesReact) == ''">^19.1.4</PackageJsonDevdependenciesTypesReact>
     <PackageJsonDevdependenciesTypesReactDom Condition="$(PackageJsonDevdependenciesTypesReactDom) == ''">^19.1.5</PackageJsonDevdependenciesTypesReactDom>
@@ -38,5 +88,7 @@
     <PackageJsonDevdependenciesTypescript Condition="$(PackageJsonDevdependenciesTypescript) == ''">~5.8.3</PackageJsonDevdependenciesTypescript>
     <PackageJsonDevdependenciesTypescriptEslint Condition="$(PackageJsonDevdependenciesTypescriptEslint) == ''">^8.30.1</PackageJsonDevdependenciesTypescriptEslint>
     <PackageJsonDevdependenciesVite Condition="$(PackageJsonDevdependenciesVite) == ''">^6.3.5</PackageJsonDevdependenciesVite>
+    <PackageJsonDevdependenciesPostcss Condition="$(PackageJsonDevdependenciesPostcss) == ''">^8</PackageJsonDevdependenciesPostcss>
+    <PackageJsonDevdependenciesTailwindcss Condition="$(PackageJsonDevdependenciesTailwindcss) == ''">^3.4.17</PackageJsonDevdependenciesTailwindcss>
   </PropertyGroup>
 </Project>
