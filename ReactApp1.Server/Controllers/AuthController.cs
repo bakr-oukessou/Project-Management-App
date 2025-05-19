@@ -7,6 +7,10 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
+using ReactApp1.Server.Data;
+using Microsoft.AspNetCore.Authorization;
+using ReactApp1.Server.Models.Dtos;
+using ReactApp1.Server.Interfaces;
 
 namespace ReactApp1.Server.Controllers
 {
@@ -17,6 +21,7 @@ namespace ReactApp1.Server.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly PasswordHasher<User> _passwordHasher;
+        private readonly IAuthService _authService;
 
         public AuthController(ApplicationDbContext context, IConfiguration configuration)
         {
@@ -39,17 +44,48 @@ namespace ReactApp1.Server.Controllers
                 return Unauthorized("Invalid email or password");
 
             string token = CreateToken(user);
-            return Ok(new { token });
+            return Ok(new {
+                token,
+                user = new {
+                    id = user.Id,
+                    email = user.Email,
+                    name = user.FirstName,
+                    role = user.Role
+                }
+            });
         }
+
+        //[HttpPost("register")]
+        //public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
+        //{
+        //    // Check if email is already taken
+        //    if (await _authService.UserExistsAsync(registerDto.Email))
+        //        return BadRequest("Email is already taken");
+
+        //    // Create user
+        //    var user = new User
+        //    {
+        //        FirstName = registerDto.FirstName,
+        //        LastName = registerDto.LastName,
+        //        Email = registerDto.Email,
+        //        Role = registerDto.Role.ToLower() == "director" ? UserRole.Director : UserRole.Developer,
+        //    };
+
+        //    var result = await _authService.Register(user, registerDto.Password);
+        //    if (!result.Success)
+        //        return BadRequest(result.Message);
+
+        //    return Ok(result.User);
+        //}
 
         private string CreateToken(User user)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Name, user.FirstName),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
@@ -65,6 +101,21 @@ namespace ReactApp1.Server.Controllers
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwt;
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<ActionResult<User>> Me()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+            return Ok(new {
+                id = user.Id,
+                email = user.Email,
+                name = user.FirstName,
+                role = user.Role
+            });
         }
     }
 

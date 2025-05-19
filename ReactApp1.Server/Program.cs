@@ -1,11 +1,11 @@
 using Microsoft.OpenApi.Models;
-using ReactApp1.Server;
 using ReactApp1.Server.Interfaces;
 using ReactApp1.Server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ReactApp1.Server.Data;
 
 
 var builder = WebApplication.CreateBuilder(args);

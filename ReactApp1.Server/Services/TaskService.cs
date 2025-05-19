@@ -1,505 +1,220 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore; // Add this using directive
+
+// Rest of the file remains unchanged
+using ReactApp1.Server.Data;
 using ReactApp1.Server.Interfaces;
 using ReactApp1.Server.Models;
 using System.Data;
+using TaskStatus = ReactApp1.Server.Models.TaskStatus;
 
 namespace ReactApp1.Server.Services
 {
     public class TaskService : ITaskService
     {
-        private readonly ILogger<TaskService> _logger;
-        private readonly IConfiguration _configuration;
-        private readonly string _connectionString;
-        private readonly INotificationService _notificationService;
+        private readonly ApplicationDbContext _context;
 
-        public TaskService(
-            ILogger<TaskService> logger,
-            IConfiguration configuration,
-            INotificationService notificationService)
+        public TaskService(ApplicationDbContext context)
         {
-            _logger = logger;
-            _configuration = configuration;
-            _connectionString = _configuration.GetConnectionString("DefaultConnection");
-            _notificationService = notificationService;
+            _context = context;
         }
 
-        public async Task<List<ProjectTask>> GetTasksByProjectIdAsync(int projectId)
+        public IEnumerable<TaskItem> GetAll()
         {
-            var tasks = new List<ProjectTask>();
-
-            try
-            {
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-
-                    const string query = @"
-                        SELECT pt.*, d.UserName as DeveloperName, d.Email as DeveloperEmail
-                        FROM ProjectTasks pt
-                        LEFT JOIN Users d ON pt.DeveloperId = d.Id
-                        WHERE pt.ProjectId = @ProjectId";
-
-                    using (var command = new SqlCommand(query, connection))
-                    {
-                        command.Parameters.AddWithValue("@ProjectId", projectId);
-
-                        using (var reader = await command.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                            {
-                                tasks.Add(MapTaskFromReader(reader));
-                            }
-                        }
-                    }
-
-                    // Load progress for each task
-                    foreach (var task in tasks)
-                    {
-                        task.Progresses = await GetTaskProgressesAsync(task.Id);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving tasks for project {ProjectId}", projectId);
-                throw;
-            }
-
-            return tasks;
+            return _context.Tasks
+                .Include(t => t.AssignedTo)
+                .Include(t => t.Project)
+                .AsNoTracking()
+                .ToList();
         }
 
-        public async Task<List<ProjectTask>> GetTasksByDeveloperIdAsync(int developerId)
+        public TaskItem GetById(int id)
         {
-            var tasks = new List<ProjectTask>();
+            var task = _context.Tasks
+                .Include(t => t.AssignedTo)
+                .Include(t => t.Project)
+                .Include(t => t.Comments)
+                    .ThenInclude(c => c.User)
+                .Include(t => t.ProgressUpdates)
+                    .ThenInclude(p => p.User)
+                .FirstOrDefault(t => t.Id == id);
 
-            try
-            {
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-
-                    const string query = @"
-                        SELECT pt.*, p.Name as ProjectName, p.Client as ProjectClient,
-                               d.UserName as DeveloperName, d.Email as DeveloperEmail
-                        FROM ProjectTasks pt
-                        LEFT JOIN Projects p ON pt.ProjectId = p.Id
-                        LEFT JOIN Users d ON pt.DeveloperId = d.Id
-                        WHERE pt.DeveloperId = @DeveloperId";
-
-                    using (var command = new SqlCommand(query, connection))
-                    {
-                        command.Parameters.AddWithValue("@DeveloperId", developerId);
-
-                        using (var reader = await command.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                            {
-                                tasks.Add(MapTaskFromReader(reader));
-                            }
-                        }
-                    }
-
-                    // Load progress for each task
-                    foreach (var task in tasks)
-                    {
-                        task.Progresses = await GetTaskProgressesAsync(task.Id);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving tasks for developer {DeveloperId}", developerId);
-                throw;
-            }
-
-            return tasks;
-        }
-
-        public async Task<bool> CreateTaskAsync(ProjectTask task)
-        {
-            try
-            {
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-                    using (var transaction = connection.BeginTransaction())
-
-                        try
-                        {
-                            // Insert the task
-                            const string insertQuery = @"
-                            INSERT INTO ProjectTasks (Description, DurationInDays, ProjectId, DeveloperId) 
-                            VALUES (@Description, @DurationInDays, @ProjectId, @DeveloperId);
-                            SELECT SCOPE_IDENTITY();";
-
-                            using (var command = new SqlCommand(insertQuery, connection, transaction))
-                            {
-                                command.Parameters.AddWithValue("@Description", task.Description);
-                                command.Parameters.AddWithValue("@DurationInDays", task.DurationInDays);
-                                command.Parameters.AddWithValue("@ProjectId", task.ProjectId);
-                                command.Parameters.AddWithValue("@DeveloperId", task.DeveloperId);
-
-                                var taskId = Convert.ToInt32(await command.ExecuteScalarAsync());
-                                task.Id = taskId;
-                            }
-
-                            // Create initial progress entry
-                            const string progressQuery = @"
-                            INSERT INTO TaskProgresses (Date, Description, PercentageComplete, TaskId)
-                            VALUES (@Date, @Description, @PercentageComplete, @TaskId)";
-
-                            using (var progressCommand = new SqlCommand(progressQuery, connection, transaction))
-                            {
-                                progressCommand.Parameters.AddWithValue("@Date", DateTime.UtcNow);
-                                progressCommand.Parameters.AddWithValue("@Description", "Task created");
-                                progressCommand.Parameters.AddWithValue("@PercentageComplete", 0);
-                                progressCommand.Parameters.AddWithValue("@TaskId", task.Id);
-
-                                await progressCommand.ExecuteNonQueryAsync();
-                            }
-
-                            transaction.Commit();
-
-                            // Create notification for task assignment
-                            await CreateTaskAssignmentNotification(task);
-
-                            return true;
-                        }
-                        catch
-                        {
-                            transaction.Rollback();
-                            throw;
-                        }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating task for project {ProjectId}", task.ProjectId);
-                return false;
-            }
-        }
-
-        public async Task<bool> UpdateTaskAsync(ProjectTask task)
-        {
-            try
-            {
-                int? previousDeveloperId = null;
-
-                // Get the current assigned developer before updating
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-
-                    using (var command = new SqlCommand("SELECT DeveloperId FROM ProjectTasks WHERE Id = @Id", connection))
-                    {
-                        command.Parameters.AddWithValue("@Id", task.Id);
-                        var result = await command.ExecuteScalarAsync();
-                        if (result != null && result != DBNull.Value)
-                        {
-                            previousDeveloperId = Convert.ToInt32(result);
-                        }
-                    }
-                }
-
-                // Update the task
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-
-                    const string updateQuery = @"
-                        UPDATE ProjectTasks 
-                        SET Description = @Description, 
-                            DurationInDays = @DurationInDays, 
-                            DeveloperId = @DeveloperId
-                        WHERE Id = @Id";
-
-                    using (var command = new SqlCommand(updateQuery, connection))
-                    {
-                        command.Parameters.AddWithValue("@Description", task.Description);
-                        command.Parameters.AddWithValue("@DurationInDays", task.DurationInDays);
-                        command.Parameters.AddWithValue("@DeveloperId", task.DeveloperId);
-                        command.Parameters.AddWithValue("@Id", task.Id);
-
-                        await command.ExecuteNonQueryAsync();
-                    }
-                }
-
-                // If developer changed, create a notification
-                if (task.DeveloperId != previousDeveloperId)
-                {
-                    await CreateTaskAssignmentNotification(task);
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating task {TaskId}", task.Id);
-                return false;
-            }
-        }
-
-        public async Task<bool> DeleteTaskAsync(int id)
-        {
-            try
-            {
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-                    using (var transaction = connection.BeginTransaction())
-
-                        try
-                        {
-                            // First delete all progress entries
-                            using (var progressCommand = new SqlCommand("DELETE FROM TaskProgresses WHERE TaskId = @TaskId", connection, transaction))
-                            {
-                                progressCommand.Parameters.AddWithValue("@TaskId", id);
-                                await progressCommand.ExecuteNonQueryAsync();
-                            }
-
-                            // Then delete the task
-                            using (var taskCommand = new SqlCommand("DELETE FROM ProjectTasks WHERE Id = @Id", connection, transaction))
-                            {
-                                taskCommand.Parameters.AddWithValue("@Id", id);
-                                await taskCommand.ExecuteNonQueryAsync();
-                            }
-
-                            transaction.Commit();
-                            return true;
-                        }
-                        catch
-                        {
-                            transaction.Rollback();
-                            throw;
-                        }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting task {TaskId}", id);
-                return false;
-            }
-        }
-
-        public async Task<bool> UpdateTaskProgressAsync(int taskId, TaskProgress progress)
-        {
-            try
-            {
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-
-                    // Insert the new progress entry
-                    const string insertProgressQuery = @"
-                        INSERT INTO TaskProgresses (Date, Description, PercentageComplete, TaskId)
-                        VALUES (@Date, @Description, @PercentageComplete, @TaskId)";
-
-                    using (var command = new SqlCommand(insertProgressQuery, connection))
-                    {
-                        command.Parameters.AddWithValue("@Date", progress.Date);
-                        command.Parameters.AddWithValue("@Description", progress.Description);
-                        command.Parameters.AddWithValue("@PercentageComplete", progress.PercentageComplete);
-                        command.Parameters.AddWithValue("@TaskId", taskId);
-
-                        await command.ExecuteNonQueryAsync();
-                    }
-
-                    // Get task and project information for notification
-                    ProjectTask task = await GetTaskByIdAsync(taskId);
-                    if (task != null)
-                    {
-                        await CreateTaskProgressNotification(task, progress);
-                    }
-
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating progress for task {TaskId}", taskId);
-                return false;
-            }
-        }
-
-        private async Task<ProjectTask> GetTaskByIdAsync(int taskId)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                const string query = @"
-                    SELECT pt.*, p.Name as ProjectName, p.ProjectManagerId
-                    FROM ProjectTasks pt
-                    LEFT JOIN Projects p ON pt.ProjectId = p.Id
-                    WHERE pt.Id = @TaskId";
-
-                using (var command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@TaskId", taskId);
-
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        if (await reader.ReadAsync())
-                        {
-                            var task = MapTaskFromReader(reader);
-                            if (!reader.IsDBNull("ProjectName"))
-                            {
-                                task.Project = new Project
-                                {
-                                    Id = task.ProjectId,
-                                    Name = reader["ProjectName"].ToString(),
-                                    ProjectManagerId = Convert.ToInt32(reader["ProjectManagerId"])
-                                };
-                            }
-                            return task;
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
-        private async Task<List<TaskProgress>> GetTaskProgressesAsync(int taskId)
-        {
-            var progresses = new List<TaskProgress>();
-
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                const string query = @"
-                    SELECT * FROM TaskProgresses 
-                    WHERE TaskId = @TaskId 
-                    ORDER BY Date DESC";
-
-                using (var command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@TaskId", taskId);
-
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            progresses.Add(new TaskProgress
-                            {
-                                Id = Convert.ToInt32(reader["Id"]),
-                                Date = Convert.ToDateTime(reader["Date"]),
-                                Description = reader["Description"].ToString(),
-                                PercentageComplete = Convert.ToInt32(reader["PercentageComplete"]),
-                                TaskId = Convert.ToInt32(reader["TaskId"])
-                            });
-                        }
-                    }
-                }
-            }
-
-            return progresses;
-        }
-
-        private async Task CreateTaskAssignmentNotification(ProjectTask task)
-        {
-            // Get project details for the notification
-            Project project = null;
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                using (var command = new SqlCommand("SELECT Name FROM Projects WHERE Id = @ProjectId", connection))
-                {
-                    command.Parameters.AddWithValue("@ProjectId", task.ProjectId);
-                    var projectName = await command.ExecuteScalarAsync() as string;
-
-                    if (!string.IsNullOrEmpty(projectName))
-                    {
-                        project = new Project { Id = task.ProjectId, Name = projectName };
-                    }
-                }
-            }
-
-            if (project != null)
-            {
-                var notification = new Notification
-                {
-                    UserId = task.DeveloperId,
-                    Message = $"You have been assigned to a new task in project '{project.Name}'",
-                    Date = DateTime.UtcNow,
-                    IsRead = false,
-                    ProjectId = task.ProjectId
-                };
-
-                await _notificationService.CreateNotificationAsync(notification);
-            }
-        }
-
-        private async Task CreateTaskProgressNotification(ProjectTask task, TaskProgress progress)
-        {
-            if (task?.Project != null)
-            {
-                var notification = new Notification
-                {
-                    UserId = task.Project.ProjectManagerId,
-                    Message = $"Task in project '{task.Project.Name}' is now {progress.PercentageComplete}% complete",
-                    Date = DateTime.UtcNow,
-                    IsRead = false,
-                    ProjectId = task.ProjectId
-                };
-
-                await _notificationService.CreateNotificationAsync(notification);
-            }
-        }
-
-        private ProjectTask MapTaskFromReader(SqlDataReader reader)
-        {
-            var task = new ProjectTask
-            {
-                Id = Convert.ToInt32(reader["Id"]),
-                Description = reader["Description"].ToString(),
-                DurationInDays = Convert.ToInt32(reader["DurationInDays"]),
-                ProjectId = Convert.ToInt32(reader["ProjectId"]),
-                DeveloperId = Convert.ToInt32(reader["DeveloperId"])
-            };
-
-            // Map Developer if available
-            if (!reader.IsDBNull("DeveloperName"))
-            {
-                task.Developer = new Developer
-                {
-                    Id = task.DeveloperId,
-                    UserName = reader["DeveloperName"].ToString(),
-                    Email = reader["DeveloperEmail"].ToString()
-                };
-            }
-
-            // Map Project if available
-            if (reader.HasColumn("ProjectName") && !reader.IsDBNull("ProjectName"))
-            {
-                task.Project = new Project
-                {
-                    Id = task.ProjectId,
-                    Name = reader["ProjectName"].ToString()
-                };
-
-                if (reader.HasColumn("ProjectClient") && !reader.IsDBNull("ProjectClient"))
-                {
-                    task.Project.Client = reader["ProjectClient"].ToString();
-                }
-            }
+            if (task == null)
+                throw new KeyNotFoundException("Task not found");
 
             return task;
         }
-    }
 
-    // Extension method to check if column exists
-    public static class SqlDataReaderExtensions
-    {
-        public static bool HasColumn(this SqlDataReader reader, string columnName)
+        public TaskItem Create(TaskItem task)
         {
-            for (int i = 0; i < reader.FieldCount; i++)
+            _context.Tasks.Add(task);
+            _context.SaveChanges();
+            return GetById(task.Id);
+        }
+
+        public TaskItem Update(int id, TaskItem updatedTask)
+        {
+            var task = _context.Tasks.Find(id);
+            if (task == null)
+                throw new KeyNotFoundException("Task not found");
+
+            // Update task properties
+            task.Title = updatedTask.Title;
+            task.Description = updatedTask.Description;
+            task.Priority = updatedTask.Priority;
+            task.Status = updatedTask.Status;
+            task.DueDate = updatedTask.DueDate;
+            task.EstimatedHours = updatedTask.EstimatedHours;
+            task.ActualHours = updatedTask.ActualHours;
+
+            // If task is completed, set completion date
+            if (task.Status == TaskStatus.Completed && !task.CompletionDate.HasValue)
+                task.CompletionDate = DateTime.UtcNow;
+
+            // If task is not completed, clear completion date
+            if (task.Status != TaskStatus.Completed)
+                task.CompletionDate = null;
+
+            _context.Tasks.Update(task);
+            _context.SaveChanges();
+
+            return GetById(id);
+        }
+
+        public void Delete(int id)
+        {
+            var task = _context.Tasks.Find(id);
+            if (task == null)
+                throw new KeyNotFoundException("Task not found");
+
+            _context.Tasks.Remove(task);
+            _context.SaveChanges();
+        }
+
+        public IEnumerable<TaskItem> GetByProject(int projectId)
+        {
+            return _context.Tasks
+                .Where(t => t.ProjectId == projectId)
+                .Include(t => t.AssignedTo)
+                .AsNoTracking()
+                .ToList();
+        }
+
+        public IEnumerable<TaskItem> GetByDeveloper(int developerId)
+        {
+            return _context.Tasks
+                .Where(t => t.AssignedToId == developerId)
+                .Include(t => t.Project)
+                .AsNoTracking()
+                .ToList();
+        }
+
+        public TaskItem AssignTask(int taskId, int developerId)
+        {
+            var task = _context.Tasks.Find(taskId);
+            if (task == null)
+                throw new KeyNotFoundException("Task not found");
+
+            var developer = _context.Users.FirstOrDefault(u => u.Id == developerId && u.Role == UserRole.Developer);
+            if (developer == null)
+                throw new KeyNotFoundException("Developer not found");
+
+            // Check if developer is assigned to the project
+            var isAssignedToProject = _context.ProjectDevelopers
+                .Any(pd => pd.ProjectId == task.ProjectId && pd.DeveloperId == developerId);
+
+            if (!isAssignedToProject)
+                throw new ApplicationException("Developer is not assigned to this project");
+
+            task.AssignedToId = developerId;
+            _context.Tasks.Update(task);
+            _context.SaveChanges();
+
+            return GetById(taskId);
+        }
+
+        public TaskItem UpdateStatus(int taskId, TaskStatus status)
+        {
+            var task = _context.Tasks.Find(taskId);
+            if (task == null)
+                throw new KeyNotFoundException("Task not found");
+
+            task.Status = status;
+
+            // If task is completed, set completion date
+            if (status == TaskStatus.Completed && !task.CompletionDate.HasValue)
+                task.CompletionDate = DateTime.UtcNow;
+
+            // If task is not completed, clear completion date
+            if (status != TaskStatus.Completed)
+                task.CompletionDate = null;
+
+            _context.Tasks.Update(task);
+            _context.SaveChanges();
+
+            return GetById(taskId);
+        }
+
+        public TaskItem UpdateProgress(int taskId, TaskProgress progress)
+        {
+            var task = _context.Tasks.Find(taskId);
+            if (task == null)
+                throw new KeyNotFoundException("Task not found");
+
+            // Add progress update
+            progress.TaskId = taskId;
+            _context.TaskProgress.Add(progress);
+            _context.SaveChanges();
+
+            // Update task status based on progress
+            if (progress.PercentageComplete == 100 && task.Status != TaskStatus.Completed)
             {
-                if (reader.GetName(i).Equals(columnName, StringComparison.InvariantCultureIgnoreCase))
-                    return true;
+                task.Status = TaskStatus.Completed;
+                task.CompletionDate = DateTime.UtcNow;
+                _context.Tasks.Update(task);
+                _context.SaveChanges();
             }
-            return false;
+            else if (progress.PercentageComplete > 0 && progress.PercentageComplete < 100 && task.Status == TaskStatus.ToDo)
+            {
+                task.Status = TaskStatus.InProgress;
+                _context.Tasks.Update(task);
+                _context.SaveChanges();
+            }
+
+            return GetById(taskId);
+        }
+
+        public TaskComment AddComment(int taskId, TaskComment comment)
+        {
+            var task = _context.Tasks.Find(taskId);
+            if (task == null)
+                throw new KeyNotFoundException("Task not found");
+
+            comment.TaskId = taskId;
+            _context.TaskComments.Add(comment);
+            _context.SaveChanges();
+
+            return comment;
+        }
+
+        public IEnumerable<TaskComment> GetCommentsByTask(int taskId)
+        {
+            return _context.TaskComments
+                .Where(c => c.TaskId == taskId)
+                .Include(c => c.User)
+                .OrderByDescending(c => c.CreatedAt)
+                .AsNoTracking()
+                .ToList();
+        }
+
+        public IEnumerable<TaskProgress> GetProgressByTask(int taskId)
+        {
+            return _context.TaskProgress
+                .Where(p => p.TaskId == taskId)
+                .Include(p => p.User)
+                .OrderByDescending(p => p.UpdatedAt)
+                .AsNoTracking()
+                .ToList();
         }
     }
 }

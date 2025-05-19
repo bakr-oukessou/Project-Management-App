@@ -1,15 +1,46 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ReactApp1.Server.Models
 {
-    public class User
+     public class User
     {
         public int Id { get; set; }
-        public string UserName { get; set; }
+        
+        [Required]
+        [StringLength(50)]
+        public string Username { get; set; }
+        
+        [Required]
+        [EmailAddress]
         public string Email { get; set; }
+        
+        [Required]
         [JsonIgnore]
         public string PasswordHash { get; set; }
-        public string Role { get; set; } // Directeur, ChefProjet, Développeur
+        
+        [Required]
+        public UserRole Role { get; set; }
+        
+        public string? FirstName { get; set; }
+        
+        public string? LastName { get; set; }
+        
+        public string? ProfilePicture { get; set; }
+        
+        public string? Bio { get; set; }
+        
+        public ICollection<Project> ManagedProjects { get; set; } = new List<Project>();
+        
+        public ICollection<ProjectDeveloper> Projects { get; set; } = new List<ProjectDeveloper>();
+        
+        public ICollection<TaskItem> AssignedTasks { get; set; } = new List<TaskItem>();
+    }
+    public enum UserRole
+    {
+        Director,
+        Manager,
+        Developer
     }
 
     public class Developer : User

@@ -18,119 +18,186 @@ namespace ReactApp1.Server.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Directeur,ChefProjet")]
-        public async Task<ActionResult<List<Project>>> GetProjects()
+        public IActionResult GetAll()
         {
-            var projects = await _projectService.GetAllProjectsAsync();
+            var projects = _projectService.GetAll();
             return Ok(projects);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetProject(int id)
+        public IActionResult GetById(int id)
         {
-            var project = await _projectService.GetProjectByIdAsync(id);
-            if (project == null) return NotFound();
-
-            return Ok(project);
+            try
+            {
+                var project = _projectService.GetById(id);
+                return Ok(project);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
 
         [HttpPost]
-        [Authorize(Roles = "Directeur")]
-        public async Task<ActionResult> CreateProject([FromBody] Project project)
+        [Authorize(Roles = "Director")]
+        public IActionResult Create([FromBody] Project project)
         {
-            // Vérifie l'unicité du nom
-            if (!await _projectService.IsProjectNameUniqueAsync(project.Name))
-            {
-                return BadRequest(new { message = "Un projet avec ce nom existe déjà" });
-            }
+            if (project == null)
+                return BadRequest();
 
-            await _projectService.CreateProjectAsync(project);
+            // Set the director ID to the current user
+            var directorId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+            project.DirectorId = directorId;
 
-            // Notification au chef de projet
-            await _projectService.NotifyProjectManagerAsync(project.Id, project.ProjectManagerId);
-
-            return CreatedAtAction(nameof(GetProject), new { id = project.Id }, project);
+            var createdProject = _projectService.Create(project);
+            return CreatedAtAction(nameof(GetById), new { id = createdProject.Id }, createdProject);
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Directeur,ChefProjet")]
-        public async Task<ActionResult> UpdateProject(int id, [FromBody] Project project)
+        [Authorize(Roles = "Director,Manager")]
+        public IActionResult Update(int id, [FromBody] Project project)
         {
-            if (id != project.Id) return BadRequest();
+            if (project == null)
+                return BadRequest();
 
-            // Vérifie l'unicité du nom
-            if (!await _projectService.IsProjectNameUniqueAsync(project.Name, project.Id))
+            try
             {
-                return BadRequest(new { message = "Un projet avec ce nom existe déjà" });
+                var updatedProject = _projectService.Update(id, project);
+                return Ok(updatedProject);
             }
-
-            var result = await _projectService.UpdateProjectAsync(project);
-            if (!result) return NotFound();
-
-            return NoContent();
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Directeur")]
-        public async Task<ActionResult> DeleteProject(int id)
+        [Authorize(Roles = "Director")]
+        public IActionResult Delete(int id)
         {
-            var result = await _projectService.DeleteProjectAsync(id);
-            if (!result) return NotFound();
-
-            return NoContent();
-        }
-
-        [HttpPost("{id}/technologies")]
-        [Authorize(Roles = "ChefProjet")]
-        public async Task<ActionResult> AddTechnologies(int id, [FromBody] AddTechnologiesDto dto)
-        {
-            var project = await _projectService.GetProjectByIdAsync(id);
-            if (project == null) return NotFound();
-
-            project.Technologies = dto.Technologies;
-            project.Methodology = dto.Methodology;
-
-            await _projectService.UpdateProjectAsync(project);
-
-            // Récupérer les développeurs ayant les compétences requises
-            var technologyIds = dto.Technologies.Select(t => t.Id).ToList();
-            var developers = await _projectService.GetDevelopersByTechnologiesAsync(technologyIds);
-
-            return Ok(new
+            try
             {
-                project,
-                availableDevelopers = developers
-            });
-        }
-
-        [HttpPost("{id}/team")]
-        [Authorize(Roles = "ChefProjet")]
-        public async Task<ActionResult> AssignTeam(int id, [FromBody] AssignTeamDto dto)
-        {
-            await _projectService.AssignTeamToProjectAsync(id, dto.DeveloperIds);
-
-            // Si une date de réunion est fournie, l'enregistrer
-            if (dto.MeetingDate.HasValue)
-            {
-                await _projectService.ScheduleTeamMeetingAsync(id, dto.MeetingDate.Value);
-
-                // Notifier les membres de l'équipe
-                await _projectService.NotifyTeamMembersAsync(id);
+                _projectService.Delete(id);
+                return NoContent();
             }
-
-            return Ok();
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
-    }
 
-    public class AddTechnologiesDto
-    {
-        public List<Technology> Technologies { get; set; }
-        public string Methodology { get; set; }
-    }
+        [HttpGet("director/{directorId}")]
+        [Authorize(Roles = "Director")]
+        public IActionResult GetByDirector(int directorId)
+        {
+            var projects = _projectService.GetByDirector(directorId);
+            return Ok(projects);
+        }
 
-    public class AssignTeamDto
-    {
-        public List<int> DeveloperIds { get; set; }
-        public DateTime? MeetingDate { get; set; }
+        [HttpGet("manager/{managerId}")]
+        [Authorize(Roles = "Manager")]
+        public IActionResult GetByManager(int managerId)
+        {
+            var projects = _projectService.GetByManager(managerId);
+            return Ok(projects);
+        }
+
+        [HttpGet("developer/{developerId}")]
+        [Authorize(Roles = "Developer")]
+        public IActionResult GetByDeveloper(int developerId)
+        {
+            var projects = _projectService.GetByDeveloper(developerId);
+            return Ok(projects);
+        }
+
+        [HttpPost("{projectId}/assign-manager/{managerId}")]
+        [Authorize(Roles = "Director")]
+        public IActionResult AssignManager(int projectId, int managerId)
+        {
+            try
+            {
+                var project = _projectService.AssignManager(projectId, managerId);
+                return Ok(project);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpPost("{projectId}/add-developer/{developerId}")]
+        [Authorize(Roles = "Manager")]
+        public IActionResult AddDeveloper(int projectId, int developerId)
+        {
+            try
+            {
+                var project = _projectService.AddDeveloper(projectId, developerId);
+                return Ok(project);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpPost("{projectId}/remove-developer/{developerId}")]
+        [Authorize(Roles = "Manager")]
+        public IActionResult RemoveDeveloper(int projectId, int developerId)
+        {
+            try
+            {
+                var project = _projectService.RemoveDeveloper(projectId, developerId);
+                return Ok(project);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpPost("{projectId}/add-technology/{technologyId}")]
+        [Authorize(Roles = "Manager")]
+        public IActionResult AddTechnology(int projectId, int technologyId)
+        {
+            try
+            {
+                var project = _projectService.AddTechnology(projectId, technologyId);
+                return Ok(project);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpPost("{projectId}/remove-technology/{technologyId}")]
+        [Authorize(Roles = "Manager")]
+        public IActionResult RemoveTechnology(int projectId, int technologyId)
+        {
+            try
+            {
+                var project = _projectService.RemoveTechnology(projectId, technologyId);
+                return Ok(project);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpPost("{projectId}/update-status")]
+        [Authorize(Roles = "Manager,Director")]
+        public IActionResult UpdateStatus(int projectId, [FromBody] ProjectStatus status)
+        {
+            try
+            {
+                var project = _projectService.UpdateStatus(projectId, status);
+                return Ok(project);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
     }
 }
