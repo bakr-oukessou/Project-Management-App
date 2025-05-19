@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { useToast } from "../hooks/use-toast"
+import { login, setToken } from "../api/authService"
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -25,32 +26,44 @@ export default function LoginPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // In a real application, you would validate credentials against a database
     // For demo purposes, we'll just simulate a successful login
 
-    let redirectPath = "/"
+    try {
+      const response = await login(formData);
+      setToken(response.token);
 
-    switch (role) {
-      case "director":
-        redirectPath = "/director/dashboard"
-        break
-      case "manager":
-        redirectPath = "/manager/dashboard"
-        break
-      case "developer":
-        redirectPath = "/developer/dashboard"
-        break
+      let redirectPath = "/"
+
+      switch (role) {
+        case "director":
+          redirectPath = "/director/dashboard"
+          break
+        case "manager":
+          redirectPath = "/manager/dashboard"
+          break
+        case "developer":
+          redirectPath = "/developer/dashboard"
+          break
+      }
+
+      toast({
+        title: "Login successful",
+        description: `Welcome back!`, // We don't have the user name from the token yet
+      })
+
+      navigate(redirectPath)
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "Login failed",
+        description: "Invalid email or password.",
+        variant: "destructive",
+      });
     }
-
-    toast({
-      title: "Login successful",
-      description: `Welcome back, ${formData.email}!`,
-    })
-
-    navigate(redirectPath)
   }
 
   const getRoleTitle = () => {
