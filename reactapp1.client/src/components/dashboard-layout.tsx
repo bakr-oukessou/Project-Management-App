@@ -109,12 +109,12 @@ export default function DashboardLayout({ children, title, userRole }: Dashboard
           <span className="sr-only">Toggle Menu</span>
         </Button>
         <div className="flex items-center gap-2">
-          <Link href="/" className="font-semibold">
+          <Link to="/" className="font-semibold">
             Project Management System
           </Link>
         </div>
         <div className="ml-auto flex items-center gap-4">
-          <Link href="/">
+          <Link to="/">
             <Button variant="outline" size="sm">
               <LogOut className="mr-2 h-4 w-4" />
               Logout
@@ -129,7 +129,7 @@ export default function DashboardLayout({ children, title, userRole }: Dashboard
           }`}
         >
           <div className="flex h-16 items-center border-b px-6 md:h-[64px]">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
+            <Link to="/" className="flex items-center gap-2 font-semibold">
               <span className="text-lg font-bold">{userRole.charAt(0).toUpperCase() + userRole.slice(1)} Panel</span>
             </Link>
             <Button
@@ -147,7 +147,7 @@ export default function DashboardLayout({ children, title, userRole }: Dashboard
               {navItems.map((item, index) => (
                 <Link
                   key={index}
-                  href={item.href}
+                  to={item.href}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground ${
                     pathname === item.href ? "bg-accent text-accent-foreground" : "transparent"
                   }`}
