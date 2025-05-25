@@ -32,12 +32,62 @@ namespace ReactApp1.Server.Services
         public IEnumerable<Project> GetAll()
         {
             return _context.Projects
-                .Include(p => p.Manager)
-                .Include(p => p.Director)
-                .Include(p => p.Developers)
-                    .ThenInclude(pd => pd.Developer)
-                .Include(p => p.Technologies)
-                    .ThenInclude(pt => pt.Technology)
+                .Select(p => new Project
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    StartDate = p.StartDate,
+                    DeadlineDate = p.DeadlineDate,
+                    EndDate = p.EndDate,
+                    StatusId = p.StatusId,
+                    Status = p.Status,
+                    ManagerId = p.ManagerId,
+                    Manager = p.Manager,
+                    DirectorId = p.DirectorId,
+                    Director = p.Director,
+                    Developers = p.Developers,
+                    Technologies = p.Technologies,
+                    Tasks = p.Tasks.Select(t => new TaskItem
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        PriorityId = t.PriorityId,
+                        Priority = t.Priority,
+                        StatusId = t.StatusId,
+                        Status = t.Status,
+                        DueDate = t.DueDate,
+                        EndDate = t.EndDate,
+                        AssignedToId = t.AssignedToId,
+                        AssignedTo = t.AssignedTo,
+                        ProjectId = t.ProjectId,
+                        EstimatedHours = t.EstimatedHours,
+                        ActualHours = t.ActualHours,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt,
+                        // Include Comments and ProgressUpdates
+                        Comments = t.Comments.Select(c => new TaskComment
+                        {
+                            Id = c.Id,
+                            Content = c.Content,
+                            CreatedAt = c.CreatedAt,
+                            TaskId = c.TaskId,
+                            UserId = c.UserId,
+                            User = c.User
+                        }).ToList(),
+                        ProgressUpdates = t.ProgressUpdates.Select(p => new TaskProgress
+                        {
+                            Id = p.Id,
+                            Description = p.Description,
+                            PercentageComplete = p.PercentageComplete,
+                            UpdatedAt = p.UpdatedAt,
+                            TaskId = p.TaskId,
+                            UserId = p.UserId,
+                            User = p.User
+                        }).ToList()
+                    }).ToList()
+                })
                 .AsNoTracking()
                 .ToList();
         }
@@ -52,6 +102,9 @@ namespace ReactApp1.Server.Services
                 .Include(p => p.Technologies)
                     .ThenInclude(pt => pt.Technology)
                 .Include(p => p.Tasks)
+                    .ThenInclude(t => t.Comments)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.ProgressUpdates)
                 .FirstOrDefault(p => p.Id == id);
 
             if (project == null)
@@ -80,8 +133,8 @@ namespace ReactApp1.Server.Services
             project.DeadlineDate = updatedProject.DeadlineDate;
             project.Status = updatedProject.Status;
 
-            if (updatedProject.CompletionDate.HasValue)
-                project.CompletionDate = updatedProject.CompletionDate;
+            if (updatedProject.EndDate.HasValue)
+                project.EndDate = updatedProject.EndDate;
 
             _context.Projects.Update(project);
             _context.SaveChanges();
@@ -102,6 +155,10 @@ namespace ReactApp1.Server.Services
         {
             return await _context.Projects
                 .Include(p => p.Manager)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.Comments)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.ProgressUpdates)
                 .Where(p => p.DirectorId == directorId)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -111,6 +168,10 @@ namespace ReactApp1.Server.Services
         {
             return await _context.Projects
                 .Include(p => p.Director)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.Comments)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.ProgressUpdates)
                 .Where(p => p.ManagerId == managerId)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -121,6 +182,10 @@ namespace ReactApp1.Server.Services
             return await _context.Projects
                 .Include(p => p.Director)
                 .Include(p => p.Manager)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.Comments)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.ProgressUpdates)
                 .Where(p => p.Developers.Any(pu => pu.DeveloperId == developerId))
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -134,6 +199,10 @@ namespace ReactApp1.Server.Services
                     .ThenInclude(pd => pd.Developer)
                 .Include(p => p.Technologies)
                     .ThenInclude(pt => pt.Technology)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.Comments)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.ProgressUpdates)
                 .AsNoTracking()
                 .ToList();
         }
@@ -144,9 +213,11 @@ namespace ReactApp1.Server.Services
                 .Where(p => p.ManagerId == managerId)
                 .Include(p => p.Director)
                 .Include(p => p.Developers)
-                    .ThenInclude(pd => pd.Developer)
                 .Include(p => p.Technologies)
-                    .ThenInclude(pt => pt.Technology)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.Comments)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.ProgressUpdates)
                 .AsNoTracking()
                 .ToList();
         }
@@ -155,14 +226,62 @@ namespace ReactApp1.Server.Services
         {
             return _context.ProjectDevelopers
                 .Where(pd => pd.DeveloperId == developerId)
-                .Include(pd => pd.Project)
-                    .ThenInclude(p => p.Manager)
-                .Include(pd => pd.Project)
-                    .ThenInclude(p => p.Director)
-                .Include(pd => pd.Project)
-                    .ThenInclude(p => p.Technologies)
-                        .ThenInclude(pt => pt.Technology)
-                .Select(pd => pd.Project)
+                .Select(pd => new Project
+                {
+                    Id = pd.Project.Id,
+                    Name = pd.Project.Name,
+                    Description = pd.Project.Description,
+                    StartDate = pd.Project.StartDate,
+                    DeadlineDate = pd.Project.DeadlineDate,
+                    EndDate = pd.Project.EndDate,
+                    StatusId = pd.Project.StatusId,
+                    Status = pd.Project.Status,
+                    ManagerId = pd.Project.ManagerId,
+                    Manager = pd.Project.Manager,
+                    DirectorId = pd.Project.DirectorId,
+                    Director = pd.Project.Director,
+                    Developers = pd.Project.Developers,
+                    Technologies = pd.Project.Technologies,
+                    Tasks = pd.Project.Tasks.Select(t => new TaskItem
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        PriorityId = t.PriorityId,
+                        Priority = t.Priority,
+                        StatusId = t.StatusId,
+                        Status = t.Status,
+                        DueDate = t.DueDate,
+                        EndDate = t.EndDate,
+                        AssignedToId = t.AssignedToId,
+                        AssignedTo = t.AssignedTo,
+                        ProjectId = t.ProjectId,
+                        EstimatedHours = t.EstimatedHours,
+                        ActualHours = t.ActualHours,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt,
+                        // Include Comments and ProgressUpdates
+                        Comments = t.Comments.Select(c => new TaskComment
+                        {
+                            Id = c.Id,
+                            Content = c.Content,
+                            CreatedAt = c.CreatedAt,
+                            TaskId = c.TaskId,
+                            UserId = c.UserId,
+                            User = c.User
+                        }).ToList(),
+                        ProgressUpdates = t.ProgressUpdates.Select(p => new TaskProgress
+                        {
+                            Id = p.Id,
+                            Description = p.Description,
+                            PercentageComplete = p.PercentageComplete,
+                            UpdatedAt = p.UpdatedAt,
+                            TaskId = p.TaskId,
+                            UserId = p.UserId,
+                            User = p.User
+                        }).ToList()
+                    }).ToList()
+                })
                 .AsNoTracking()
                 .ToList();
         }
@@ -280,12 +399,12 @@ namespace ReactApp1.Server.Services
             project.Status = status;
 
             // If project is completed, set completion date
-            if (status == ProjectStatus.Completed && !project.CompletionDate.HasValue)
-                project.CompletionDate = DateTime.UtcNow;
+            if (status.Name == "Completed" && !project.EndDate.HasValue)
+                project.EndDate = DateTime.UtcNow;
 
             // If project is not completed, clear completion date
-            if (status != ProjectStatus.Completed)
-                project.CompletionDate = null;
+            if (status.Name != "Completed")
+                project.EndDate = null;
 
             _context.Projects.Update(project);
             _context.SaveChanges();

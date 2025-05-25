@@ -10,7 +10,7 @@ namespace ReactApp1.Server.Models.Dtos
         public string Description { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? DeadlineDate { get; set; }
-        public DateTime? CompletionDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public ProjectStatus Status { get; set; }
         public int? ManagerId { get; set; }
         public int DirectorId { get; set; }
@@ -33,7 +33,7 @@ namespace ReactApp1.Server.Models.Dtos
         public DateTime StartDate { get; set; }
         public DateTime? DeadlineDate { get; set; }
         public ProjectStatus Status { get; set; }
-        public DateTime? CompletionDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 
     public class AssignManagerDto

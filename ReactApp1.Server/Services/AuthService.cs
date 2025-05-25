@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace ReactApp1.Server.Services
 {
@@ -58,7 +59,7 @@ namespace ReactApp1.Server.Services
             // Create user
             var user = new User
             {
-                Username = model.Username,
+                Username = model.Username ?? model.Email.Split('@')[0], // Use email prefix as username if not provided
                 Email = model.Email,
                 PasswordHash = HashPassword(model.Password),
                 Role = model.Role,
@@ -138,7 +139,7 @@ namespace ReactApp1.Server.Services
         public string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var key = Encoding.ASCII.GetBytes(_configuration["AppSettings:Token"]);
 
             var claims = new List<Claim>
             {
@@ -151,14 +152,18 @@ namespace ReactApp1.Server.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:ExpiryInMinutes"])),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"]
+                Expires = DateTime.UtcNow.AddDays(1), // Set a default expiry
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                // Remove Issuer and Audience as they're not in your config
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        public async Task<bool> UserExistsAsync(string email)
+        {
+            return await _context.Users.AnyAsync(u => u.Email == email);
         }
     }
 }

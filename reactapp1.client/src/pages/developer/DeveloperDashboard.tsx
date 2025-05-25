@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Bell } from "lucide-react"
 import DashboardLayout from "../../components/dashboard-layout"
 import { Badge } from "../../components/ui/badge"
+import { authApi, usersApi } from "../../api/authService"
 
 // Sample data - in a real app, this would come from a database
 const sampleProjects = [
@@ -47,21 +48,59 @@ const sampleNotifications = [
   },
 ]
 
-const developerProfile = {
-  name: "Alex Chen",
-  email: "alex.chen@example.com",
-  skills: [".NET", "React", "SQL Server", "JavaScript"],
-  experience: "5 years",
-}
-
 export default function DeveloperDashboard() {
   const [projects, setProjects] = useState(sampleProjects)
   const [notifications, setNotifications] = useState(sampleNotifications)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [developerProfile, setDeveloperProfile] = useState<{
+    name: string
+    email: string
+    skills: string[]
+    experience: string
+  }>({
+    name: "",
+    email: "",
+      skills: ["React", ".NET", "JS"],
+    experience: "5 years",
+  })
+  const [loadingProfile, setLoadingProfile] = useState(true)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        // 1. Get basic user info
+        const meResponse = await authApi.me()
+        const me = meResponse.data
+
+        // 2. Get full user profile
+        const userResponse = await usersApi.getById(me.id)
+        const user = userResponse.data
+
+        setDeveloperProfile({
+          name: user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`
+            : user.username || user.email,
+          email: user.email,
+          skills: user.skills || ["React", ".NET", "JS"],
+          experience: user.experience || "5 years",
+        })
+      } catch (err) {
+        setDeveloperProfile({
+          name: "Unknown",
+          email: "",
+          skills: ["React", ".NET", "JS"],
+          experience: "5 years",
+        })
+      } finally {
+        setLoadingProfile(false)
+      }
+    }
+    fetchProfile()
+  }, [])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  const markAsRead = (id:string) => {
+  const markAsRead = (id: string) => {
     setNotifications(notifications.map((n) => (n.id === id ? { ...n, read: true } : n)))
   }
 
@@ -176,33 +215,39 @@ export default function DeveloperDashboard() {
             <CardDescription>Your skills and information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Name</p>
-              <p>{developerProfile.name}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Email</p>
-              <p>{developerProfile.email}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Experience</p>
-              <p>{developerProfile.experience}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Skills</p>
-              <div className="flex flex-wrap gap-2">
-                {developerProfile.skills.map((skill, index) => (
-                  <Badge key={index} variant="secondary">
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <Link to="/developer/profile">
-              <Button variant="outline" className="w-full">
-                Edit Profile
-              </Button>
-            </Link>
+            {loadingProfile ? (
+              <p>Loading profile...</p>
+            ) : (
+              <>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Name</p>
+                  <p>{developerProfile.name}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Email</p>
+                  <p>{developerProfile.email}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Experience</p>
+                  <p>{developerProfile.experience}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {developerProfile.skills.map((skill, index) => (
+                      <Badge key={index} variant="secondary">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <Link to="/developer/profile">
+                  <Button variant="outline" className="w-full">
+                    Edit Profile
+                  </Button>
+                </Link>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

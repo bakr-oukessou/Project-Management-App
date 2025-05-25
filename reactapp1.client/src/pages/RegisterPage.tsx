@@ -8,6 +8,7 @@ import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { useToast } from "../hooks/use-toast"
+import { authApi, setToken } from "../api/authService"
 
 interface FormData {
   fullName: string
@@ -33,7 +34,7 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "developer",
+    role: "Developer",
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
@@ -79,22 +80,48 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (!validateForm()) {
       return
     }
 
-    // In a real application, you would register the user in the database
-    // For demo purposes, we'll just simulate a successful registration
+    try {
+      // Split fullName into firstName and lastName
+      const nameParts = formData.fullName.split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
-    toast({
-      title: "Registration successful",
-      description: `User ${formData.fullName} has been registered as ${formData.role}.`,
-    })
+      // Create the registration data object
+      const registerData = {
+        firstName: firstName,
+        lastName: lastName,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role
+      };
 
-    navigate("/login")
+      // Call the register API
+      const response = await authApi.register(registerData);
+      
+      toast({
+        title: "Registration successful",
+        description: `User ${formData.fullName} has been registered as ${formData.role}.`,
+      })
+
+      // Redirect to login page
+      navigate("/login")
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      
+      // Display error message
+      toast({
+        title: "Registration failed",
+        description: error.response?.data || "An error occurred during registration.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -156,9 +183,9 @@ export default function RegisterPage() {
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="director">IT Director</SelectItem>
-                  <SelectItem value="manager">Project Manager</SelectItem>
-                  <SelectItem value="developer">Developer</SelectItem>
+                  <SelectItem value="Director">IT Director</SelectItem>
+                  <SelectItem value="Manager">Project Manager</SelectItem>
+                  <SelectItem value="Developer">Developer</SelectItem>
                 </SelectContent>
               </Select>
             </div>

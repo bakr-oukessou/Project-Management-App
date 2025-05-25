@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ReactApp1.Server.Models
 {
+    [Table("TaskProgresses")] // Add this attribute
     public class TaskProgress
     {
         public int Id { get; set; }
@@ -11,9 +12,9 @@ namespace ReactApp1.Server.Models
         public string Description { get; set; }
 
         [Required]
+        [Range(0, 100)]
         public int PercentageComplete { get; set; }
 
-        [Required]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public int TaskId { get; set; }

@@ -9,5 +9,6 @@ namespace ReactApp1.Server.Interfaces
         string HashPassword(string password);
         bool VerifyPassword(string password, string hash);
         string GenerateJwtToken(User user);
+        Task<bool> UserExistsAsync(string email);
     }
 }

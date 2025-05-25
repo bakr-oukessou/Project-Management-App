@@ -17,15 +17,16 @@ namespace ReactApp1.Server.Models
         [Required]
         public DateTime StartDate { get; set; }
 
-        [Required]
-        public DateTime DeadlineDate { get; set; }
+        public DateTime? DeadlineDate { get; set; }
 
-        public DateTime? CompletionDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
-        [Required]
-        public ProjectStatus Status { get; set; } = ProjectStatus.Planning;
+        public int StatusId { get; set; }
+
+        [ForeignKey("StatusId")]
+        public ProjectStatus Status { get; set; }
 
         public int? ManagerId { get; set; }
 
@@ -48,19 +49,26 @@ namespace ReactApp1.Server.Models
         {
             get
             {
+                if (Status?.Name == "Completed") return 100;
+                if (Status?.Name == "Planning") return 0;
                 if (!Tasks.Any()) return 0;
-                return (int)((double)Tasks.Count(t => t.Status == TaskStatus.Completed) / Tasks.Count * 100);
+
+                return (int)((double)Tasks.Count(t => t.Status?.Name == "Completed") / Tasks.Count * 100);
             }
         }
+
+        public string? ClientName { get; set; }
     }
 
-    public enum ProjectStatus
+    public class ProjectStatus
     {
-        Planning,
-        InProgress,
-        OnHold,
-        Completed,
-        Cancelled
+        public int Id { get; set; }
+
+        [Required]
+        [StringLength(20)]
+        public string Name { get; set; }
+
+        public ICollection<Project> Projects { get; set; } = new List<Project>();
     }
 
     public class ProjectDeveloper

@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace ReactApp1.Server.Models
 {
-     public class User
+    public class User
     {
         public int Id { get; set; }
         
@@ -20,6 +21,7 @@ namespace ReactApp1.Server.Models
         public string PasswordHash { get; set; }
         
         [Required]
+        [Column(TypeName = "nvarchar(20)")]
         public UserRole Role { get; set; }
         
         public string? FirstName { get; set; }
@@ -28,7 +30,6 @@ namespace ReactApp1.Server.Models
         
         public string? ProfilePicture { get; set; }
         
-        public string? Bio { get; set; }
         
         public ICollection<Project> ManagedProjects { get; set; } = new List<Project>();
         

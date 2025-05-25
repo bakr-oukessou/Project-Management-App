@@ -18,35 +18,35 @@ namespace ReactApp1.Server.Controllers
         }
 
         [HttpGet("project/{projectId}")]
-        public async Task<ActionResult<List<ProjectTask>>> GetTasksByProject(int projectId)
+        public ActionResult<List<TaskItem>> GetTasksByProject(int projectId)
         {
-            var tasks = await _taskService.GetTasksByProjectIdAsync(projectId);
+            var tasks = _taskService.GetByProject(projectId);
             return Ok(tasks);
         }
 
         [HttpGet("developer/{developerId}")]
-        public async Task<ActionResult<List<ProjectTask>>> GetTasksByDeveloper(int developerId)
+        public ActionResult<List<TaskItem>> GetTasksByDeveloper(int developerId)
         {
-            var tasks = await _taskService.GetTasksByDeveloperIdAsync(developerId);
+            var tasks = _taskService.GetByDeveloper(developerId);
             return Ok(tasks);
         }
 
         [HttpPost]
         [Authorize(Roles = "ChefProjet")]
-        public async Task<ActionResult> CreateTask([FromBody] ProjectTask task)
+        public ActionResult CreateTask([FromBody] TaskItem task)
         {
-            await _taskService.CreateTaskAsync(task);
-            return CreatedAtAction(nameof(GetTasksByProject), new { projectId = task.ProjectId }, task);
+            var createdTask = _taskService.Create(task);
+            return CreatedAtAction(nameof(GetTasksByProject), new { projectId = task.ProjectId }, createdTask);
         }
 
         [HttpPost("{taskId}/progress")]
         [Authorize(Roles = "Développeur")]
-        public async Task<ActionResult> UpdateProgress(int taskId, [FromBody] TaskProgress progress)
+        public ActionResult UpdateProgress(int taskId, [FromBody] TaskProgress progress)
         {
             progress.TaskId = taskId;
-            progress.Date = DateTime.Now;
+            progress.UpdatedAt = DateTime.Now;
 
-            await _taskService.UpdateTaskProgressAsync(taskId, progress);
+            _taskService.UpdateProgress(taskId, progress);
             return Ok();
         }
     }

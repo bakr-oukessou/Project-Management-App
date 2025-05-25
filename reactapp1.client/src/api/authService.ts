@@ -4,7 +4,7 @@
 import axios from 'axios';
 
 // const API_URL = '/api/auth/';
-const API_URL = 'https://localhost:5001/api';
+const API_URL = 'https://localhost:7151/api';
 
 export interface LoginCredentials {
   email: string;
@@ -45,7 +45,7 @@ export const getCurrentUser = async (): Promise<User> => {
 };
 
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  const response = await axios.post<AuthResponse>(`${API_URL}login`, credentials);
+  const response = await axios.post<AuthResponse>(`${API_URL}/auth/login`, credentials);
   return response.data;
 };
 
@@ -104,6 +104,9 @@ export const authApi = {
   
   register: (userData: any) => 
     api.post('/auth/register', userData),
+
+    me: () =>
+        api.get('/auth/me'),
 };
 
 // Projects API
@@ -150,10 +153,10 @@ export const tasksApi = {
   getById: (id: number) => 
     api.get(`/tasks/${id}`),
   
-  create: (task: any) => 
+  create: (task: string) => 
     api.post('/tasks', task),
   
-  update: (id: number, task: any) => 
+  update: (id: number, task: string) => 
     api.put(`/tasks/${id}`, task),
   
   delete: (id: number) => 
@@ -204,10 +207,10 @@ export const technologiesApi = {
   getById: (id: number) => 
     api.get(`/technologies/${id}`),
   
-  create: (technology: any) => 
+  create: (technology: any) => // Changed from string to any for flexibility
     api.post('/technologies', technology),
   
-  update: (id: number, technology: any) => 
+  update: (id: number, technology: any) => // Changed from string to any for flexibility
     api.put(`/technologies/${id}`, technology),
   
   delete: (id: number) => 

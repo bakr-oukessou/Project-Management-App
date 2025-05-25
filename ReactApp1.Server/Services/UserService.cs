@@ -52,8 +52,7 @@ namespace ReactApp1.Server.Services
                 user.Email = model.Email;
             }
 
-            if (!string.IsNullOrEmpty(model.Bio))
-                user.Bio = model.Bio;
+            
 
             if (!string.IsNullOrEmpty(model.ProfilePicture))
                 user.ProfilePicture = model.ProfilePicture;

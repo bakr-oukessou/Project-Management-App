@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-type UserRole = 'director' | 'project-manager' | 'developer'
+type UserRole = 'Director' | 'project-manager' | 'developer'
 
 interface User {
     id: string

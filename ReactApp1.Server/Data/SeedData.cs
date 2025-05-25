@@ -85,7 +85,7 @@ namespace ReactApp1.Server.Data
                 Description = "A full-featured e-commerce platform with product management, cart, and checkout.",
                 StartDate = DateTime.UtcNow.AddDays(-30),
                 DeadlineDate = DateTime.UtcNow.AddDays(60),
-                Status = ProjectStatus.InProgress,
+                //Status = ProjectStatus.InProgress,
                 DirectorId = director.Id,
                 ManagerId = manager.Id
             };
@@ -96,7 +96,7 @@ namespace ReactApp1.Server.Data
                 Description = "Customer Relationship Management system for sales and support teams.",
                 StartDate = DateTime.UtcNow.AddDays(-15),
                 DeadlineDate = DateTime.UtcNow.AddDays(90),
-                Status = ProjectStatus.Planning,
+                //Status = ProjectStatus.Planning,
                 DirectorId = director.Id
             };
 
@@ -135,10 +135,10 @@ namespace ReactApp1.Server.Data
                 {
                     Title = "Design Database Schema",
                     Description = "Create the database schema for the e-commerce platform",
-                    Priority = TaskPriority.High,
-                    Status = TaskStatus.Completed,
+                    //Priority = TaskPriority.High,
+                    //Status = TaskStatus.Completed,
                     DueDate = DateTime.UtcNow.AddDays(-5),
-                    CompletionDate = DateTime.UtcNow.AddDays(-7),
+                    EndDate = DateTime.UtcNow.AddDays(-7),
                     AssignedToId = developer1.Id,
                     ProjectId = project1.Id,
                     EstimatedHours = 8,
@@ -148,8 +148,8 @@ namespace ReactApp1.Server.Data
                 {
                     Title = "Implement User Authentication",
                     Description = "Implement JWT authentication for the API",
-                    Priority = TaskPriority.High,
-                    Status = TaskStatus.InProgress,
+                    //Priority = TaskPriority.High,
+                    //Status = TaskStatus.InProgress,
                     DueDate = DateTime.UtcNow.AddDays(5),
                     AssignedToId = developer2.Id,
                     ProjectId = project1.Id,
@@ -159,8 +159,8 @@ namespace ReactApp1.Server.Data
                 {
                     Title = "Create Product Listing UI",
                     Description = "Implement the product listing page with filtering and sorting",
-                    Priority = TaskPriority.Medium,
-                    Status = TaskStatus.ToDo,
+                    //Priority = TaskPriority.Medium,
+                    //Status = TaskStatus.ToDo,
                     DueDate = DateTime.UtcNow.AddDays(10),
                     AssignedToId = developer1.Id,
                     ProjectId = project1.Id,
@@ -170,8 +170,8 @@ namespace ReactApp1.Server.Data
                 {
                     Title = "Requirements Gathering",
                     Description = "Gather and document requirements for the CRM system",
-                    Priority = TaskPriority.High,
-                    Status = TaskStatus.InProgress,
+                    //Priority = TaskPriority.High,
+                    //Status = TaskStatus.InProgress,
                     DueDate = DateTime.UtcNow.AddDays(3),
                     AssignedToId = developer1.Id,
                     ProjectId = project2.Id,
@@ -208,34 +208,7 @@ namespace ReactApp1.Server.Data
             context.TaskComments.AddRange(taskComments);
             context.SaveChanges();
 
-            // Seed task progress
-            var taskProgress = new List<TaskProgress>
-            {
-                new TaskProgress
-                {
-                    Description = "Completed database schema design",
-                    PercentageComplete = 100,
-                    TaskId = tasks[0].Id,
-                    UserId = developer1.Id
-                },
-                new TaskProgress
-                {
-                    Description = "Implemented user registration and login",
-                    PercentageComplete = 50,
-                    TaskId = tasks[1].Id,
-                    UserId = developer2.Id
-                },
-                new TaskProgress
-                {
-                    Description = "Completed initial requirements document",
-                    PercentageComplete = 30,
-                    TaskId = tasks[3].Id,
-                    UserId = developer1.Id
-                }
-            };
-
-            context.TaskProgress.AddRange(taskProgress);
-            context.SaveChanges();
+            
         }
     }
 }

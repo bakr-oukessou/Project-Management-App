@@ -29,7 +29,7 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "developer",
+    role: "Developer",
   })
 
   const [errors, setErrors] = useState<Errors>({})
@@ -148,9 +148,9 @@ export default function RegisterPage() {
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="director">IT Director</SelectItem>
-                  <SelectItem value="manager">Project Manager</SelectItem>
-                  <SelectItem value="developer">Developer</SelectItem>
+                  <SelectItem value="Director">IT Director</SelectItem>
+                  <SelectItem value="Manager">Project Manager</SelectItem>
+                  <SelectItem value="Developer">Developer</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -161,7 +161,7 @@ export default function RegisterPage() {
             </Button>
             <div className="text-center text-sm">
               Already have an account?{" "}
-              <Link href="/login" className="text-primary underline">
+              <Link to="/login" className="text-primary underline">
                 Login
               </Link>
             </div>

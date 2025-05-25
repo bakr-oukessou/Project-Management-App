@@ -141,7 +141,7 @@ namespace ReactApp1.Server.Services
                 notification.User = new User
                 {
                     Id = notification.UserId,
-                    UserName = reader["UserName"].ToString(),
+                    Username = reader["UserName"].ToString(),
                     Email = reader["Email"].ToString()
                 };
             }
@@ -153,7 +153,7 @@ namespace ReactApp1.Server.Services
                 {
                     Id = notification.ProjectId.Value,
                     Name = reader["ProjectName"].ToString(),
-                    Client = reader["ProjectClient"] != DBNull.Value ? reader["ProjectClient"].ToString() : null
+                    ClientName = reader["ProjectClient"] != DBNull.Value ? reader["ProjectClient"].ToString() : null
                 };
             }
 
