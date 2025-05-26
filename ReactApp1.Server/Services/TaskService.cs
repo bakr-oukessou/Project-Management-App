@@ -20,32 +20,82 @@ namespace ReactApp1.Server.Services
         public IEnumerable<TaskItem> GetAll()
         {
             return _context.Tasks
-                .Include(t => t.AssignedTo)
-                .Include(t => t.Project)
-                .Include(t => t.Status)
-                .Include(t => t.Priority)
+                .Select(t => new TaskItem
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    PriorityId = t.PriorityId,
+                    Priority = t.Priority,
+                    StatusId = t.StatusId,
+                    Status = t.Status,
+                    DueDate = t.DueDate,
+                    EndDate = t.EndDate,
+                    AssignedToId = t.AssignedToId,
+                    AssignedTo = t.AssignedTo,
+                    ProjectId = t.ProjectId,
+                    Project = t.Project,
+                    EstimatedHours = t.EstimatedHours,
+                    ActualHours = t.ActualHours,
+                    CreatedAt = t.CreatedAt,
+                    UpdatedAt = t.UpdatedAt
+                })
                 .AsNoTracking()
                 .ToList();
         }
 
+
         public TaskItem GetById(int id)
         {
             var task = _context.Tasks
-                .Include(t => t.AssignedTo)
-                .Include(t => t.Project)
-                .Include(t => t.Status)
-                .Include(t => t.Priority)
-                .Include(t => t.Comments)
-                    .ThenInclude(c => c.User)
-                .Include(t => t.ProgressUpdates)
-                    .ThenInclude(p => p.User)
-                .FirstOrDefault(t => t.Id == id);
+                .Where(t => t.Id == id)
+                .Select(t => new TaskItem
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    PriorityId = t.PriorityId,
+                    Priority = t.Priority,
+                    StatusId = t.StatusId,
+                    Status = t.Status,
+                    DueDate = t.DueDate,
+                    EndDate = t.EndDate,
+                    AssignedToId = t.AssignedToId,
+                    AssignedTo = t.AssignedTo,
+                    ProjectId = t.ProjectId,
+                    Project = t.Project,
+                    EstimatedHours = t.EstimatedHours,
+                    ActualHours = t.ActualHours,
+                    CreatedAt = t.CreatedAt,
+                    UpdatedAt = t.UpdatedAt,
+                    Comments = t.Comments.Select(c => new TaskComment
+                    {
+                        Id = c.Id,
+                        Content = c.Content,
+                        CreatedAt = c.CreatedAt,
+                        TaskId = c.TaskId,
+                        UserId = c.UserId,
+                        User = c.User
+                    }).ToList(),
+                    ProgressUpdates = t.ProgressUpdates.Select(p => new TaskProgress
+                    {
+                        Id = p.Id,
+                        Description = p.Description,
+                        PercentageComplete = p.PercentageComplete,
+                        UpdatedAt = p.UpdatedAt,
+                        TaskId = p.TaskId,
+                        UserId = p.UserId,
+                    }).ToList()
+                })
+                .AsNoTracking()
+                .FirstOrDefault();
 
             if (task == null)
                 throw new KeyNotFoundException("Task not found");
 
             return task;
         }
+
 
         public TaskItem Create(TaskItem task)
         {
@@ -103,23 +153,59 @@ namespace ReactApp1.Server.Services
         {
             return _context.Tasks
                 .Where(t => t.ProjectId == projectId)
-                .Include(t => t.AssignedTo)
-                .Include(t => t.Status)
-                .Include(t => t.Priority)
+                .Select(t => new TaskItem
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    PriorityId = t.PriorityId,
+                    Priority = t.Priority,
+                    StatusId = t.StatusId,
+                    Status = t.Status,
+                    DueDate = t.DueDate,
+                    EndDate = t.EndDate,
+                    AssignedToId = t.AssignedToId,
+                    AssignedTo = t.AssignedTo,
+                    ProjectId = t.ProjectId,
+                    Project = t.Project,
+                    EstimatedHours = t.EstimatedHours,
+                    ActualHours = t.ActualHours,
+                    CreatedAt = t.CreatedAt,
+                    UpdatedAt = t.UpdatedAt
+                })
                 .AsNoTracking()
                 .ToList();
         }
+
 
         public IEnumerable<TaskItem> GetByDeveloper(int developerId)
         {
             return _context.Tasks
                 .Where(t => t.AssignedToId == developerId)
-                .Include(t => t.Project)
-                .Include(t => t.Status)
-                .Include(t => t.Priority)
+                .Select(t => new TaskItem
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    PriorityId = t.PriorityId,
+                    Priority = t.Priority,
+                    StatusId = t.StatusId,
+                    Status = t.Status,
+                    DueDate = t.DueDate,
+                    EndDate = t.EndDate,
+                    AssignedToId = t.AssignedToId,
+                    AssignedTo = t.AssignedTo,
+                    ProjectId = t.ProjectId,
+                    Project = t.Project,
+                    EstimatedHours = t.EstimatedHours,
+                    ActualHours = t.ActualHours,
+                    CreatedAt = t.CreatedAt,
+                    UpdatedAt = t.UpdatedAt
+                })
                 .AsNoTracking()
                 .ToList();
         }
+
 
         public TaskItem AssignTask(int taskId, int developerId)
         {
@@ -173,23 +259,124 @@ namespace ReactApp1.Server.Services
             return GetById(taskId);
         }
 
+        public bool AddProgressSql(int taskId, int userId, string description, int percentageComplete)
+        {
+            var connection = _context.Database.GetDbConnection();
+            connection.Open();
+
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                // 1. Vérifie que la tâche existe
+                var checkCmd = connection.CreateCommand();
+                checkCmd.Transaction = transaction;
+                checkCmd.CommandText = "SELECT COUNT(*) FROM Tasks WHERE Id = @TaskId";
+                checkCmd.Parameters.Add(new SqlParameter("@TaskId", taskId));
+                var exists = (int)checkCmd.ExecuteScalar() > 0;
+
+                if (!exists)
+                    throw new KeyNotFoundException("Task not found");
+
+                // 2. Insère dans TaskProgresses
+                var insertCmd = connection.CreateCommand();
+                insertCmd.Transaction = transaction;
+                insertCmd.CommandText = @"
+            INSERT INTO TaskProgresses (Description, PercentageComplete, UpdatedAt, TaskId, UserId)
+            VALUES (@Description, @PercentageComplete, SYSDATETIME(), @TaskId, @UserId)";
+                insertCmd.Parameters.Add(new SqlParameter("@Description", description));
+                insertCmd.Parameters.Add(new SqlParameter("@PercentageComplete", percentageComplete));
+                insertCmd.Parameters.Add(new SqlParameter("@TaskId", taskId));
+                insertCmd.Parameters.Add(new SqlParameter("@UserId", userId));
+                insertCmd.ExecuteNonQuery();
+
+                // 3. Récupère les IDs de statuts
+                int? completedId = null, inProgressId = null, todoId = null;
+
+                var statusCmd = connection.CreateCommand();
+                statusCmd.Transaction = transaction;
+                statusCmd.CommandText = "SELECT Id, Name FROM TaskStatuses";
+                using (var reader = statusCmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var name = reader.GetString(1);
+                        var id = reader.GetInt32(0);
+                        if (name == "Completed") completedId = id;
+                        else if (name == "InProgress") inProgressId = id;
+                        else if (name == "ToDo") todoId = id;
+                    }
+                }
+
+                // 4. Récupère le statut actuel de la tâche
+                int? currentStatusId = null;
+                var currentStatusCmd = connection.CreateCommand();
+                currentStatusCmd.Transaction = transaction;
+                currentStatusCmd.CommandText = "SELECT StatusId FROM Tasks WHERE Id = @TaskId";
+                currentStatusCmd.Parameters.Add(new SqlParameter("@TaskId", taskId));
+                currentStatusId = (int?)currentStatusCmd.ExecuteScalar();
+
+                // 5. Logique de mise à jour de statut
+                if (percentageComplete == 100 && completedId.HasValue && currentStatusId != completedId)
+                {
+                    var updateCmd = connection.CreateCommand();
+                    updateCmd.Transaction = transaction;
+                    updateCmd.CommandText = @"
+                UPDATE Tasks 
+                SET StatusId = @CompletedId, EndDate = SYSDATETIME(), UpdatedAt = SYSDATETIME()
+                WHERE Id = @TaskId";
+                    updateCmd.Parameters.Add(new SqlParameter("@CompletedId", completedId));
+                    updateCmd.Parameters.Add(new SqlParameter("@TaskId", taskId));
+                    updateCmd.ExecuteNonQuery();
+                }
+                else if (percentageComplete > 0 && percentageComplete < 100 &&
+                         todoId.HasValue && inProgressId.HasValue && currentStatusId == todoId)
+                {
+                    var updateCmd = connection.CreateCommand();
+                    updateCmd.Transaction = transaction;
+                    updateCmd.CommandText = @"
+                UPDATE Tasks 
+                SET StatusId = @InProgressId, UpdatedAt = SYSDATETIME()
+                WHERE Id = @TaskId";
+                    updateCmd.Parameters.Add(new SqlParameter("@InProgressId", inProgressId));
+                    updateCmd.Parameters.Add(new SqlParameter("@TaskId", taskId));
+                    updateCmd.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
         public TaskItem UpdateProgress(int taskId, TaskProgress progress)
         {
-            var task = _context.Tasks.Find(taskId);
-            if (task == null)
+            // Vérifie que la tâche existe
+            var taskExists = _context.Tasks.Any(t => t.Id == taskId);
+            if (!taskExists)
                 throw new KeyNotFoundException("Task not found");
 
-            // Add progress update
+            // Ajoute la mise à jour de progrès
             progress.TaskId = taskId;
             _context.TaskProgresses.Add(progress);
             _context.SaveChanges();
 
-            // Get status IDs
+            // Statuts de référence
             var completedStatus = _context.TaskStatuses.FirstOrDefault(s => s.Name == "Completed");
             var inProgressStatus = _context.TaskStatuses.FirstOrDefault(s => s.Name == "InProgress");
             var todoStatus = _context.TaskStatuses.FirstOrDefault(s => s.Name == "ToDo");
 
-            // Update task status based on progress
+            var task = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
+            if (task == null) throw new KeyNotFoundException("Task not found");
+
+            // Mise à jour automatique du statut
             if (progress.PercentageComplete == 100 && completedStatus != null && task.StatusId != completedStatus.Id)
             {
                 task.StatusId = completedStatus.Id;
@@ -207,8 +394,52 @@ namespace ReactApp1.Server.Services
                 _context.SaveChanges();
             }
 
-            return GetById(taskId);
+            // Projection explicite sans UserId
+            return _context.Tasks
+                .Where(t => t.Id == taskId)
+                .Select(t => new TaskItem
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    PriorityId = t.PriorityId,
+                    Priority = t.Priority,
+                    StatusId = t.StatusId,
+                    Status = t.Status,
+                    DueDate = t.DueDate,
+                    EndDate = t.EndDate,
+                    AssignedToId = t.AssignedToId,
+                    AssignedTo = t.AssignedTo,
+                    ProjectId = t.ProjectId,
+                    Project = t.Project,
+                    EstimatedHours = t.EstimatedHours,
+                    ActualHours = t.ActualHours,
+                    CreatedAt = t.CreatedAt,
+                    UpdatedAt = t.UpdatedAt,
+                    Comments = t.Comments.Select(c => new TaskComment
+                    {
+                        Id = c.Id,
+                        Content = c.Content,
+                        CreatedAt = c.CreatedAt,
+                        TaskId = c.TaskId,
+                        UserId = c.UserId,
+                        User = c.User
+                    }).ToList(),
+                    ProgressUpdates = t.ProgressUpdates.Select(p => new TaskProgress
+                    {
+                        Id = p.Id,
+                        Description = p.Description,
+                        PercentageComplete = p.PercentageComplete,
+                        UpdatedAt = p.UpdatedAt,
+                        TaskId = p.TaskId,
+                        UserId = p.UserId,
+                        User = p.User
+                    }).ToList()
+                })
+                .AsNoTracking()
+                .FirstOrDefault()!;
         }
+
 
         public TaskComment AddComment(int taskId, TaskComment comment)
         {

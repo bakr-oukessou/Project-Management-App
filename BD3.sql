@@ -14,6 +14,7 @@ CREATE TABLE UserRoles (
 INSERT INTO UserRoles (Name) VALUES 
 ('Director'), ('Manager'), ('Developer');
 
+select * from Users;
 -- Create Users table
 CREATE TABLE Users (
     Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -417,3 +418,22 @@ UNION ALL
 SELECT 'ProjectTechnologies', COUNT(*) FROM ProjectTechnologies;
 
 SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Projects';
+
+-- Insert Tasks assigned to userId: 1 (Developer)
+INSERT INTO Tasks (Title, Description, StatusId, PriorityId, DueDate, EndDate, AssignedToId, ProjectId, EstimatedHours, ActualHours, UpdatedAt) VALUES
+-- E-Commerce Platform Tasks for User 1
+('Implement Shopping Cart', 'Develop shopping cart functionality with persistent storage', 2, 3, '2024-06-10', NULL, 1, 1, 25, 18, '2024-05-22'),
+('Product Detail Page API', 'Create API endpoints for product details and variations', 3, 2, '2024-05-25', '2024-05-22', 1, 1, 15, 16, '2024-05-22'),
+
+-- Mobile Banking App Tasks for User 1
+('Transaction Notification Service', 'Implement push notifications for transactions', 2, 3, '2024-06-05', NULL, 1, 2, 25, 15, '2024-05-18'),
+('Security Audit Fixes', 'Address security vulnerabilities from audit report', 1, 4, '2024-07-15', NULL, 1, 2, 40, 0, NULL),
+
+-- Inventory Management Tasks for User 1
+('Inventory Reporting Module', 'Create reporting features for inventory levels', 3, 2, '2024-06-01', NULL, 1, 3, 30, 22, '2024-05-21')
+
+INSERT INTO Projects (Name, Description, StartDate, DeadlineDate, EndDate, StatusId, ManagerId, DirectorId, ClientName, UpdatedAt) VALUES
+('AUlIOs Platform Redesign', 'Complete overhaul of the existing e-commerce platform with modern UI/UX and improved performance', '2024-03-01', '2024-08-15', NULL, 2, 15, 1, 'TechMart Inc.', '2024-05-20'),
+('Mobile App', 'Development of a secure mobile banking application for iOS and Android platforms', '2024-04-15', '2024-10-30', NULL, 2, 15, 1, 'SecureBank Ltd.', '2024-05-21')
+select * from users;
+select * from projects;

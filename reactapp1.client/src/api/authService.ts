@@ -1,4 +1,4 @@
-// authService.ts
+﻿// authService.ts
 // Service for authentication API calls
 
 import axios from 'axios';
@@ -26,24 +26,58 @@ export interface AuthResponse {
     name: string;
   };
 }
+export interface Project {
+    id: number;
+    name: string;
+    description: string;
+    startDate: string;
+    deadlineDate: string;
+    endDate: string | null;
+    status: {
+        id: number;
+        name: string;
+    };
+    manager: User;
+    director: User;
+    developers: User[];
+    technologies: Technology[];
+    tasks: Task[];
+    completionPercentage: number;
+    clientName: string | null;
+}
+export interface Task {
+    id: number;
+    title: string;
+    description: string;
+    status: {
+        id: number;
+        name: string;
+    };
+    progress: number;
+    assignedTo: User;
+    dueDate: string;
+}
 
-// export async function login(email: string, password: string) {
-//   const response = await fetch("https://localhost:5001/api/auth/login", {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ email, password }),
-//   });
-//   if (!response.ok) {
-//     throw new Error("Login failed");
-//   }
-//   return response.json(); // { token: "..." }
-// }
+export interface Technology {
+    id: number;
+    name: string;
+}
+
+export interface TaskProgress {
+    description: string;
+    percentageComplete: number;
+    userId: number;
+}
+
+export interface ProjectStatusUpdate {
+    statusId: number;
+}
+
 
 export const getCurrentUser = async (): Promise<User> => {
-  const response = await axios.get(`${API_URL}/auth/me`);
-  return response.data;
+    const response = await api.get("/auth/me"); // ← pas axios.get
+    return response.data;
 };
-
 export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   const response = await axios.post<AuthResponse>(`${API_URL}/auth/login`, credentials);
   return response.data;
@@ -127,22 +161,36 @@ export const projectsApi = {
     api.delete(`/projects/${id}`),
   
   assignManager: (projectId: number, managerId: number) => 
-    api.post(`/projects/${projectId}/assign-manager`, { managerId }),
+    api.post(`/projects/${projectId}/assign-manager/${ managerId }`),
   
   addTechnology: (projectId: number, technologyId: number) => 
-    api.post(`/projects/${projectId}/add-technology`, { technologyId }),
+    api.post(`/projects/${projectId}/add-technology/${ technologyId }`),
   
   addDeveloper: (projectId: number, developerId: number) => 
-    api.post(`/projects/${projectId}/add-developer`, { developerId }),
-  
-  getDirectorProjects: () => 
-    api.get('/projects/director'),
+      api.post(`/projects/${projectId}/add-developer/${developerId}`),
+
+  removeDeveloper: (projectId: number, developerId: number) =>
+    api.post(`/projects/${projectId}/remove-developer/${developerId}`),
+
+  removeTechnology: (projectId: number, TechnologyId: number) =>
+     api.post(`/projects/${projectId}/remove-technology/${TechnologyId}`),
+
+  getDirectorProjects: (directorId:number) => 
+    api.get(`/projects/director/${directorId}`),
   
   getManagerProjects: () => 
-    api.get('/projects/manager'),
-  
+        api.get(`/projects/manager`),
+
+   getManagerProjectsById: (managerId: number) => api.get(`/projects/manager/${managerId}`),
+
   getDeveloperProjects: () => 
     api.get('/projects/developer'),
+  
+  getDeveloperProjectsById: (developerId: number) => 
+    api.get(`/projects/developer/${developerId}`),
+  
+  updateProjectStatus: (projectId: number, statusData: any) => 
+    api.post(`/projects/${projectId}/update-status`, statusData),
 };
 
 // Tasks API
@@ -152,9 +200,21 @@ export const tasksApi = {
   
   getById: (id: number) => 
     api.get(`/tasks/${id}`),
-  
-  create: (task: string) => 
-    api.post('/tasks', task),
+
+  getMyTasks: () => 
+    api.get('/tasks/my'),
+
+  create: (task: {
+    title: string;
+    description: string;
+    priorityId: number;
+    statusId: number;
+    assignedToId: number;
+    dueDate: string;
+    projectId: number;
+    estimatedHours?: number;
+    actualHours?: number;
+    }) => api.post('/tasks', task),
   
   update: (id: number, task: string) => 
     api.put(`/tasks/${id}`, task),
@@ -162,14 +222,37 @@ export const tasksApi = {
   delete: (id: number) => 
     api.delete(`/tasks/${id}`),
   
-  updateProgress: (taskId: number, progress: number) => 
-    api.put(`/tasks/${taskId}/progress`, { progress }),
-  
   getTasksByProject: (projectId: number) => 
-    api.get(`/tasks/project/${projectId}`),
+    api.get(`/tasks/by-project/${projectId}`),
   
-  getTasksByDeveloper: () => 
-    api.get('/tasks/developer'),
+  getTasksByDeveloper: (developerId:number) => 
+    api.get(`/tasks/by-developer/${developerId}`),
+
+    updateProgressRawSql: (
+        taskId: number,
+        data: {
+            description: string;
+            percentageComplete: number;
+            userId: number;
+        }
+    ) => api.post(`/tasks/${taskId}/progress-sql`, data),
+
+    assignTask: (taskId: number, developerId: number): Promise<Task> =>
+        api.put(`/tasks/assign/${taskId}/developer/${developerId}`),
+
+    updateStatus: (taskId: number, statusId: number): Promise<Task> =>
+        api.put(`/tasks/update-status/${taskId}/to/${statusId}`),
+
+    addComment: (taskId: number, comment: { content: string }): Promise<any> =>
+        api.post(`/tasks/${taskId}/comments`, comment),
+
+    getComments: (taskId: number): Promise<any[]> => api.get(`/tasks/${taskId}/comments`),
+
+    getProgress: (taskId: number): Promise<any[]> => api.get(`/tasks/${taskId}/progress`),
+
+    getStatuses: (): Promise<any[]> => api.get('/tasks/statuses'),
+
+    getPriorities: (): Promise<any[]> => api.get('/tasks/priorities'),
 };
 
 // Users API
@@ -185,10 +268,14 @@ export const usersApi = {
   
   getManagers: () => 
     api.get('/users/managers'),
-  
-  getDevelopers: () => 
-    api.get('/users/developers'),
-  
+ 
+
+  getDevelopers: (projectId: number) =>
+    api.get(`/users/project/${projectId}/developers`),
+
+  getAvailableDevelopers: (projectId: number) =>
+    api.get(`/users/project/${projectId}/available-developers`),
+
   updateProfile: (userData: any) => 
     api.put('/users/profile', userData),
   
@@ -196,7 +283,9 @@ export const usersApi = {
     api.post('/users/skills', { technologyId }),
   
   removeSkill: (technologyId: number) => 
-    api.delete(`/users/skills/${technologyId}`),
+        api.delete(`/users/skills/${technologyId}`),
+
+  getAllTechnologies: () => api.get('/technologies'),
 };
 
 // Technologies API
@@ -215,6 +304,17 @@ export const technologiesApi = {
   
   delete: (id: number) => 
     api.delete(`/technologies/${id}`),
+
+  getTechnologiesByProject: (projectId: number) =>
+    api.get(`/technologies/project/${projectId}`),
+};
+
+export const notificationsApi = {
+    getUserNotifications: (userId: number): Promise<any[]> =>
+        api.get(`/notifications/user/${userId}`),
+
+    markAsRead: (notificationId: number): Promise<void> =>
+        api.put(`/notifications/${notificationId}/read`),
 };
 
 export default api;

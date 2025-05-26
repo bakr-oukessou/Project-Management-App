@@ -23,6 +23,7 @@ import ViewProjects from "./pages/developer/ViewProjects"
 import EditProfile from "./pages/developer/EditProfile"
 import { Toaster } from "./components/ui/toaster"
 import { ThemeProvider } from "./components/theme-provider"
+import ManagerProjectsPage from "./pages/manager/ManagerProjectsPage"
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
           {/* Manager routes */}
           <Route path="/manager/dashboard" element={<ManagerDashboard />} />
           <Route path="/manager/projects/:id" element={<ManagerProjectDetails />} />
+          <Route path="/manager/projects" element={<ManagerProjectsPage />} />
           <Route path="/manager/projects/add-technologies/:id" element={<AddTechnologies />} />
           <Route path="/manager/projects/form-team/:id" element={<FormTeam />} />
           <Route path="/manager/projects/assign-tasks/:id" element={<AssignTasks />} />
@@ -60,7 +62,7 @@ function App() {
           <Route path="/developer/profile/edit" element={<EditProfile />} />
 
           {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/error" replace />} />
         </Routes>
         <Toaster />
       </Router>

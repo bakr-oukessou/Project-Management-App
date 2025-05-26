@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Search } from "lucide-react"
 import { Input } from "../../components/ui/input"
 import DashboardLayout from "../../components/dashboard-layout"
+import { tasksApi } from "../../api/authService"
 
 interface Task {
   id: string
@@ -61,12 +62,38 @@ const sampleTasks: Task[] = [
 
 export default function ViewTasks() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [userTasks, setUserTasks] = useState<Task[]>([])
 
-  const filteredTasks = sampleTasks.filter(
+  useEffect(() => {
+    const fetchUserTasks = async () => {
+      try {
+        const res = await tasksApi.getMyTasks()
+        const backendTasks = res.data.map((t: any): Task => ({
+          id: t.id.toString(),
+          name: t.title,
+          description: t.description,
+          progress:
+            t.progressUpdates?.[0]?.percentageComplete ?? Math.floor(Math.random() * 100),
+          serviceName: t.project?.name || "N/A",
+          projectName: t.project?.name || "N/A",
+          dueDate: t.dueDate?.split("T")[0] || "N/A"
+        }))
+        setUserTasks(backendTasks)
+      } catch (err) {
+        console.error("Error fetching user tasks:", err)
+      }
+    }
+
+    fetchUserTasks()
+  }, [])
+
+  const allTasks = [...userTasks, ...sampleTasks]
+
+  const filteredTasks = allTasks.filter(
     (task) =>
       task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.serviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      task.projectName.toLowerCase().includes(searchTerm.toLowerCase()),
+      task.projectName.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const getProgressColor = (progress: number) => {
@@ -118,7 +145,9 @@ export default function ViewTasks() {
               ) : (
                 filteredTasks.map((task) => (
                   <TableRow key={task.id}>
-                    <TableCell className="font-medium">{task.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {task.name}
+                    </TableCell>
                     <TableCell>{task.serviceName}</TableCell>
                     <TableCell>{task.projectName}</TableCell>
                     <TableCell>{task.dueDate}</TableCell>
@@ -152,7 +181,7 @@ export default function ViewTasks() {
             <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sampleTasks.length}</div>
+            <div className="text-2xl font-bold">{allTasks.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -160,7 +189,7 @@ export default function ViewTasks() {
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sampleTasks.filter((task) => task.progress === 100).length}</div>
+            <div className="text-2xl font-bold">{allTasks.filter((task) => task.progress === 100).length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -169,7 +198,7 @@ export default function ViewTasks() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {sampleTasks.filter((task) => task.progress > 0 && task.progress < 100).length}
+              {allTasks.filter((task) => task.progress > 0 && task.progress < 100).length}
             </div>
           </CardContent>
         </Card>

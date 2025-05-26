@@ -15,6 +15,7 @@ namespace ReactApp1.Server.Interfaces
         TaskItem AssignTask(int taskId, int developerId);
         TaskItem UpdateStatus(int taskId, int statusId); // Changed from TaskStatus enum to int
         TaskItem UpdateProgress(int taskId, TaskProgress progress);
+        public bool AddProgressSql(int taskId, int userId, string description, int percentageComplete);
         TaskComment AddComment(int taskId, TaskComment comment);
         IEnumerable<TaskComment> GetCommentsByTask(int taskId);
         IEnumerable<TaskProgress> GetProgressByTask(int taskId);

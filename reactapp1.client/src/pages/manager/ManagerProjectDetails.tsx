@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
@@ -10,680 +10,897 @@ import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Textarea } from "../../components/ui/textarea"
-import { Calendar, Clock, GitBranch, Plus, CalendarIcon } from "lucide-react"
+import { Calendar, Clock, GitBranch, Plus, CalendarIcon, Trash2, Edit, Check, X } from "lucide-react"
 import { useToast } from "../../hooks/use-toast"
 import DashboardLayout from "../../components/dashboard-layout"
- 
-interface Task {
-  id: string
-  name: string
-  progress: number
+import { projectsApi, tasksApi, usersApi, technologiesApi } from "../../api/authService"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog"
+import { AxiosResponse } from "axios"
+
+interface ProjectStatus {
+    id: number
+    name: string
 }
 
-interface Service {
-  id: string
-  name: string
-  description: string
-  assignedTo: string
-  duration: number
-  tasks: Task[]
+interface User {
+    id: number
+    firstName: string
+    lastName: string
+    email: string
+    role: string
+}
+
+interface Technology {
+    id: number
+    name: string
+}
+
+interface Task {
+    id: number
+    title: string
+    description: string
+    status: ProjectStatus
+    progress: number
+    assignedTo: User
+    dueDate: string
 }
 
 interface Project {
-  id: string
-  name: string
-  description: string
-  client: string
-  startDate: string
-  endDate: string
-  developmentDays: number
-  status: string
-  technologies: string[]
-  methodology: string
-  team: string[]
-  meetingDate: string | null
-  services: Service[]
+    id: number
+    name: string
+    description: string
+    startDate: string
+    deadlineDate: string
+    endDate: string | null
+    status: ProjectStatus
+    manager: User
+    director: User
+    developers: User[]
+    technologies: Technology[]
+    tasks: Task[]
+    completionPercentage: number
+    clientName: string | null
 }
 
-interface Developer {
-  id: string
-  name: string
-  skills: string[]
+interface NewTaskForm {
+    title: string;
+    description: string;
+    priorityId: number;  // Required
+    statusId: number;    // Required
+    assignedToId: number | null;
+    dueDate: string;
+    estimatedHours?: number;
+    actualHours?: number;
 }
-
-interface NewServiceFormData {
-  name: string
-  description: string
-  assignedTo: string
-  duration: string
-}
-
-// Sample data - in a real app, this would come from a database
-const sampleProjects: Project[] = [
-  {
-    id: "1",
-    name: "E-commerce Platform",
-    description: "A full-featured e-commerce platform with payment integration",
-    client: "RetailCorp Inc.",
-    startDate: "2023-06-15",
-    endDate: "2023-12-15",
-    developmentDays: 120,
-    status: "In Progress",
-    technologies: [".NET", "React", "SQL Server"],
-    methodology: "Agile",
-    team: ["Alex Chen", "Maria Garcia", "Sam Wilson"],
-    meetingDate: "2023-06-20T10:00:00",
-    services: [
-      {
-        id: "s1",
-        name: "User Authentication",
-        description: "Implement secure user authentication with OAuth",
-        assignedTo: "Alex Chen",
-        duration: 5,
-        tasks: [
-          { id: "t1", name: "Setup OAuth providers", progress: 100 },
-          { id: "t2", name: "Implement login flow", progress: 80 },
-          { id: "t3", name: "Create user profile page", progress: 50 },
-        ],
-      },
-      {
-        id: "s2",
-        name: "Payment Processing",
-        description: "Integrate payment gateway for secure transactions",
-        assignedTo: "Maria Garcia",
-        duration: 7,
-        tasks: [
-          { id: "t4", name: "Research payment providers", progress: 100 },
-          { id: "t5", name: "Implement payment API", progress: 60 },
-          { id: "t6", name: "Create checkout flow", progress: 30 },
-        ],
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "CRM System",
-    description: "Customer relationship management system with analytics",
-    client: "ServicePro Ltd.",
-    startDate: "2023-07-01",
-    endDate: "2023-10-30",
-    developmentDays: 90,
-    status: "Planning",
-    technologies: ["Java", "Angular", "PostgreSQL"],
-    methodology: "Scrum",
-    team: ["Taylor Johnson", "Jordan Lee"],
-    meetingDate: null,
-    services: [],
-  },
-]
-
-const availableTechnologies: string[] = [
-  ".NET",
-  "Java",
-  "PHP",
-  "Python",
-  "JavaScript",
-  "TypeScript",
-  "React",
-  "Angular",
-  "Vue.js",
-  "Node.js",
-  "SQL Server",
-  "MySQL",
-  "PostgreSQL",
-  "MongoDB",
-  "AWS",
-  "Azure",
-  "Docker",
-  "Kubernetes",
-]
-
-const methodologies: string[] = ["Agile", "Scrum", "Kanban", "Waterfall", "XP", "Lean", "DevOps"]
-
-const availableDevelopers: Developer[] = [
-  { id: "d1", name: "Alex Chen", skills: [".NET", "React", "SQL Server"] },
-  { id: "d2", name: "Maria Garcia", skills: ["Java", "Angular", "MySQL"] },
-  { id: "d3", name: "Sam Wilson", skills: ["Python", "React", "MongoDB"] },
-  { id: "d4", name: "Taylor Johnson", skills: [".NET", "Vue.js", "SQL Server"] },
-  { id: "d5", name: "Jordan Lee", skills: ["PHP", "JavaScript", "MySQL"] },
-  { id: "d6", name: "Casey Martinez", skills: ["Java", "React", "PostgreSQL"] },
-]
 
 export default function ManagerProjectDetails() {
-  const { id } = useParams<{ id: string }>()
-  const { toast } = useToast()
-
-  // In a real app, you would fetch the project data based on the ID
-  // Using sample data for now, but handling potential null for type safety
-  const [project, setProject] = useState<Project | null>(sampleProjects.find(p => p.id === id) || null)
-  const [selectedTech, setSelectedTech] = useState<string>("")
-  const [selectedMethodology, setSelectedMethodology] = useState<string>(project?.methodology || "")
-  const [meetingDate, setMeetingDate] = useState<string>(project?.meetingDate || "")
-  const [filteredDevelopers, setFilteredDevelopers] = useState<Developer[]>([])
-  const [selectedTeam, setSelectedTeam] = useState<string[]>(project?.team || [])
-
-  const [newService, setNewService] = useState<NewServiceFormData>({
-    name: "",
-    description: "",
-    assignedTo: "",
-    duration: "",
-  })
-
-  useEffect(() => {
-    // Filter developers based on project technologies
-    if (project) {
-      const devs = availableDevelopers.filter((dev: Developer) => project.technologies.some((tech: string) => dev.skills.includes(tech)))
-      setFilteredDevelopers(devs)
-    }
-  }, [project?.technologies]) // Added project?.technologies to dependencies
-
-  const addTechnology = () => {
-    if (selectedTech && project && !project.technologies.includes(selectedTech)) {
-      const updatedProject = {
-        ...project,
-        technologies: [...project.technologies, selectedTech],
-      }
-      setProject(updatedProject)
-      setSelectedTech("")
-
-      toast({
-        title: "Technology added",
-        description: `${selectedTech} has been added to the project.`,
-      })
-    }
-  }
-
-  const setMethodology = () => {
-    if (selectedMethodology && project) {
-      setProject({
-        ...project,
-        methodology: selectedMethodology,
-      })
-
-      toast({
-        title: "Methodology set",
-        description: `${selectedMethodology} has been set as the project methodology.`,
-      })
-    }
-  }
-
-  const addDeveloperToTeam = (developerId: string) => {
-    if (!project) return;
-    const developer = availableDevelopers.find((dev) => dev.id === developerId)
-    if (developer && !selectedTeam.includes(developer.name)) {
-      setSelectedTeam([...selectedTeam, developer.name])
-    }
-  }
-
-  const removeDeveloperFromTeam = (developerName: string) => {
-    setSelectedTeam(selectedTeam.filter((name) => name !== developerName))
-  }
-
-  const saveTeam = () => {
-    if (!project) return;
-    setProject({
-      ...project,
-      team: selectedTeam,
+    const { id } = useParams<{ id: string }>()
+    const { toast } = useToast()
+    const navigate = useNavigate()
+    const [project, setProject] = useState<Project | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [editing, setEditing] = useState(false)
+    const [editForm, setEditForm] = useState({
+        name: '',
+        description: '',
+        clientName: '',
+        deadlineDate: ''
     })
+    const [availableDevelopers, setAvailableDevelopers] = useState<User[]>([])
+    const [availableTechnologies, setAvailableTechnologies] = useState<Technology[]>([])
+    const [newTask, setNewTask] = useState<NewTaskForm>({
+        title: '',
+        description: '',
+        priorityId: 2, // Default to Medium priority
+        statusId: 1,   // Default to ToDo status
+        assignedToId: null,
+        dueDate: new Date().toISOString().split('T')[0],
+        estimatedHours: 0,
+        actualHours: 0
+    });
+    const [selectedTechnologyId, setSelectedTechnologyId] = useState<number | null>(null)
+    const [removingDeveloperId, setRemovingDeveloperId] = useState<number | null>(null);
+    const [addingDeveloperId, setAddingDeveloperId] = useState<number | null>(null);
+    useEffect(() => {
+        console.log('Current project state:', {
+            developers: project?.developers,
+            availableDevs: availableDevelopers
+        });
+    }, [project, availableDevelopers]);
 
-    toast({
-      title: "Team saved",
-      description: `Development team has been updated.`, // Using backticks for template literal
-    })
-  }
+    useEffect(() => {
+        const fetchProjectData = async () => {
+            try {
+                setLoading(true);
 
-  const scheduleMeeting = () => {
-    if (meetingDate && project) {
-      setProject({
-        ...project,
-        meetingDate: meetingDate,
-      })
+                // 1. Fetch basic project data
+                const projectResponse: AxiosResponse<Project> = await projectsApi.getById(Number(id));
+                console.log('Project API Response:', projectResponse.data);
 
-      toast({
-        title: "Meeting scheduled",
-        description: `Team meeting has been scheduled.`, // Using backticks for template literal
-      })
+                // 2. Fetch assigned developers using the correct endpoint
+                const devsResponse: AxiosResponse<User[]> = await usersApi.getDevelopers(Number(id));
+                const developers = devsResponse.data || [];
+                const techsResponse: AxiosResponse<Technology[]> =
+                    await technologiesApi.getTechnologiesByProject(Number(id));
+                const technologies = techsResponse.data || [];
+                // 3. Set state with guaranteed arrays
+                setProject({
+                    ...projectResponse.data,
+                    developers: developers,
+                    technologies: technologies || [],
+                    tasks: projectResponse.data.tasks || []
+                });
+
+                // 4. Fetch available developers using the correct endpoint
+                const availableDevsResponse: AxiosResponse<User[]> = await usersApi.getAvailableDevelopers(Number(id));
+                setAvailableDevelopers(availableDevsResponse.data || []);
+                const allTechsResponse: AxiosResponse<Technology[]> = await technologiesApi.getAll();
+                setAvailableTechnologies(allTechsResponse.data || []);
+
+            } catch (error) {
+                console.error("Failed to fetch project data", error);
+                toast({
+                    title: "Error",
+                    description: "Could not load project details.",
+                    variant: "destructive"
+                });
+                navigate("/manager/projects");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProjectData();
+    }, [id]);
+
+    const handleEditProject = async () => {
+        try {
+            const response: AxiosResponse<Project> = await projectsApi.update(Number(id), {
+                ...editForm,
+                deadlineDate: new Date(editForm.deadlineDate).toISOString()
+            })
+            setProject({
+                ...response.data,
+                developers: response.data.developers || [],
+                technologies: response.data.technologies || [],
+                tasks: response.data.tasks || []
+            })
+            setEditing(false)
+            toast({
+                title: "Success",
+                description: "Project updated successfully",
+            })
+        } catch (error) {
+            console.error("Failed to update project", error)
+            toast({
+                title: "Error",
+                description: "Could not update project",
+                variant: "destructive"
+            })
+        }
     }
-  }
 
-  const handleNewServiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setNewService((prev) => ({ ...prev, [name]: value }))
-  }
+    const handleAddDeveloper = async (developerId: number) => {
+        try {
+            setAddingDeveloperId(developerId);
+            await projectsApi.addDeveloper(Number(id), developerId);
+            await refreshDevelopers(); // Refresh developers after adding
+            toast({
+                title: "Success",
+                description: "Developer added to project",
+            });
+        } catch (error) {
+            console.error("Failed to add developer", error);
+            toast({
+                title: "Error",
+                description: "Could not add developer",
+                variant: "destructive"
+            });
+        } finally {
+            setAddingDeveloperId(null);
+        }
+    };
 
-  const addService = () => {
-    if (newService.name && newService.assignedTo && newService.duration && project) {
-      const service: Service = {
-        id: `s${project.services.length + 1}`,
-        name: newService.name,
-        description: newService.description,
-        assignedTo: newService.assignedTo,
-        duration: Number.parseInt(newService.duration),
-        tasks: [], // Initialize with empty tasks array
-      }
+    const refreshDevelopers = async () => {
+        try {
+            // Refresh assigned developers
+            const devsResponse: AxiosResponse<User[]> = await usersApi.getDevelopers(Number(id));
+            setProject(prev => prev ? {
+                ...prev,
+                developers: devsResponse.data || []
+            } : null);
 
-      setProject({
-        ...project,
-        services: [...project.services, service],
-      })
+            // Refresh available developers
+            const availableDevsResponse: AxiosResponse<User[]> = await usersApi.getAvailableDevelopers(Number(id));
+            setAvailableDevelopers(availableDevsResponse.data || []);
+        } catch (error) {
+            console.error("Failed to refresh developers", error);
+            toast({
+                title: "Error",
+                description: "Failed to refresh developer lists",
+                variant: "destructive"
+            });
+        }
+    };
 
-      setNewService({
-        name: "",
-        description: "",
-        assignedTo: "",
-        duration: "",
-      })
+    const handleRemoveDeveloper = async (developerId: number) => {
+        try {
+            setRemovingDeveloperId(developerId);
+            await projectsApi.removeDeveloper(Number(id), developerId);
+            await refreshDevelopers(); // Refresh developers after removing
+            toast({
+                title: "Success",
+                description: "Developer removed from project",
+            });
+        } catch (error) {
+            console.error("Failed to remove developer", error);
+            toast({
+                title: "Error",
+                description: "Could not remove developer",
+                variant: "destructive"
+            });
+        } finally {
+            setRemovingDeveloperId(null);
+        }
+    };
 
-      toast({
-        title: "Service added",
-        description: `${newService.name} has been added to the project.`, // Using backticks for template literal
-      })
+    const refreshTechnologies = async () => {
+        try {
+            // Refresh project technologies
+            const techsResponse: AxiosResponse<Technology[]> =
+                await technologiesApi.getTechnologiesByProject(Number(id));
+
+            setProject(prev => prev ? {
+                ...prev,
+                technologies: techsResponse.data || []
+            } : null);
+
+            // Refresh available technologies
+            const allTechsResponse: AxiosResponse<Technology[]> = await technologiesApi.getAll();
+            setAvailableTechnologies(allTechsResponse.data || []);
+
+        } catch (error) {
+            console.error("Failed to refresh technologies", error);
+            toast({
+                title: "Error",
+                description: "Failed to refresh technology lists",
+                variant: "destructive"
+            });
+        }
+    };
+
+    const handleAddTechnology = async () => {
+        if (!selectedTechnologyId) return
+
+        try {
+            const response: AxiosResponse<Project> = await projectsApi.addTechnology(Number(id), selectedTechnologyId)
+            setProject({
+                ...response.data,
+                developers: response.data.developers || [],
+                technologies: response.data.technologies || [],
+                tasks: response.data.tasks || []
+            })
+            await refreshTechnologies(); // Refresh technologies after adding
+            setSelectedTechnologyId(null)
+            toast({
+                title: "Success",
+                description: "Technology added to project",
+            })
+        } catch (error) {
+            console.error("Failed to add technology", error)
+            toast({
+                title: "Error",
+                description: "Could not add technology",
+                variant: "destructive"
+            })
+        }
     }
-  }
 
-  if (!project) {
+    
+    const handleRemoveTechnology = async (technologyId: number) => {
+        try {
+            const response: AxiosResponse<Project> = await projectsApi.removeTechnology(Number(id), technologyId)
+            setProject({
+                ...response.data,
+                developers: response.data.developers || [],
+                technologies: response.data.technologies || [],
+                tasks: response.data.tasks || []
+            })
+            await refreshTechnologies(); // Refresh technologies after removing
+            toast({
+                title: "Success",
+                description: "Technology removed from project",
+            })
+        } catch (error) {
+            console.error("Failed to remove technology", error)
+            toast({
+                title: "Error",
+                description: "Could not remove technology",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleCreateTask = async () => {
+        if (!newTask.title || !newTask.description || !newTask.assignedToId) {
+            toast({
+                title: "Error",
+                description: "Please fill all required fields",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        try {
+            // Prepare the task payload according to your model
+            const taskPayload = {
+                title: newTask.title,
+                description: newTask.description,
+                priorityId: newTask.priorityId,
+                statusId: newTask.statusId,
+                assignedToId: newTask.assignedToId,
+                dueDate: newTask.dueDate,
+                projectId: Number(id),
+                estimatedHours: newTask.estimatedHours || 0,
+                actualHours: newTask.actualHours || 0
+            };
+
+            console.log("Creating task with payload:", taskPayload);
+
+            const response = await tasksApi.create(taskPayload);
+            console.log("Task created:", response.data);
+
+            // Refresh the project to get the updated task list
+            const projectResponse = await projectsApi.getById(Number(id));
+            setProject(projectResponse.data);
+
+            // Reset the form
+            setNewTask({
+                title: '',
+                description: '',
+                priorityId: 2,
+                statusId: 1,
+                assignedToId: null,
+                dueDate: new Date().toISOString().split('T')[0],
+                estimatedHours: 0,
+                actualHours: 0
+            });
+
+            toast({
+                title: "Success",
+                description: "Task created successfully",
+            });
+        } catch (error) {
+            console.error("Failed to create task:", error);
+            toast({
+                title: "Error",
+                description: "Could not create task",
+                variant: "destructive"
+            });
+        }
+    };
+
+    const handleUpdateTaskStatus = async (taskId: number, statusId: number) => {
+        try {
+            await tasksApi.updateStatus(taskId, statusId)
+            // Refresh project tasks
+            const projectResponse = await projectsApi.getById(Number(id))
+            setProject({
+                ...projectResponse.data,
+                developers: projectResponse.data.developers || [],
+                technologies: projectResponse.data.technologies || [],
+                tasks: projectResponse.data.tasks || []
+            })
+            toast({
+                title: "Success",
+                description: "Task status updated",
+            })
+        } catch (error) {
+            console.error("Failed to update task status", error)
+            toast({
+                title: "Error",
+                description: "Could not update task status",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString()
+    }
+
+    if (loading) {
+        return (
+            <DashboardLayout title="Project Details" userRole="manager">
+                <div className="flex items-center justify-center h-40">
+                    <p>Loading project details...</p>
+                </div>
+            </DashboardLayout>
+        )
+    }
+
+    if (!project) {
+        return (
+            <DashboardLayout title="Project Details" userRole="manager">
+                <div className="flex items-center justify-center h-40">
+                    <p>Project not found</p>
+                </div>
+            </DashboardLayout>
+        )
+    }
+
     return (
-      <DashboardLayout title="Project Details" userRole="manager">
-        <div className="flex items-center justify-center h-40">
-          <p>Loading project details...</p>
-        </div>
-      </DashboardLayout>
-    )
-  }
-
-  return (
-    <DashboardLayout title={`Project: ${project.name}`} userRole="manager">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">{project.name}</h1>
-        <p className="text-muted-foreground">{project.description}</p>
-      </div>
-
-      <Tabs defaultValue="overview">
-        <TabsList className="mb-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="technologies">Technologies</TabsTrigger>
-          <TabsTrigger value="team">Team</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Details</CardTitle>
-              <CardDescription>Basic information about the project</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Client</p>
-                  <p>{project.client}</p>
+        <DashboardLayout title={`Project: ${project.name}`} userRole="manager">
+            <div className="mb-6 flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold">{project.name}</h1>
+                    <p className="text-muted-foreground">{project.description}</p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Status</p>
-                  <Badge>{project.status}</Badge>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Start Date</p>
-                  <p className="flex items-center">
-                    <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                    {project.startDate}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">End Date</p>
-                  <p className="flex items-center">
-                    <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                    {project.endDate}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Development Days</p>
-                  <p className="flex items-center">
-                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    {project.developmentDays} days
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Methodology</p>
-                  <p className="flex items-center">
-                    <GitBranch className="mr-2 h-4 w-4 text-muted-foreground" />
-                    {project.methodology || "Not set"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Technologies</p>
-                <div className="flex flex-wrap gap-2">
-                  {project.technologies.length > 0 ? (
-                    project.technologies.map((tech, index) => (
-                      <Badge key={index} variant="secondary">
-                        {tech}
-                      </Badge>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No technologies added yet</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Team</p>
-                <div className="flex flex-wrap gap-2">
-                  {project.team.length > 0 ? (
-                    project.team.map((member, index) => (
-                      <Badge key={index} variant="outline">
-                        {member}
-                      </Badge>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No team members assigned yet</p>
-                  )}
-                </div>
-              </div>
-
-              {project.meetingDate && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Team Meeting</p>
-                  <p className="flex items-center">
-                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    {new Date(project.meetingDate).toLocaleString()}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="technologies">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Add Technologies</CardTitle>
-                <CardDescription>Select technologies that will be used in this project</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="technology">Technology</Label>
-                  <Select value={selectedTech} onValueChange={(value: string) => setSelectedTech(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a technology" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableTechnologies.map((tech) => (
-                        <SelectItem key={tech} value={tech}>
-                          {tech}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button onClick={addTechnology} disabled={!selectedTech}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Technology
-                </Button>
-
-                <div className="space-y-2">
-                  <Label>Current Technologies</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.length > 0 ? (
-                      project.technologies.map((tech, index) => (
-                        <Badge key={index} variant="secondary">
-                          {tech}
-                        </Badge>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No technologies added yet</p>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Set Methodology</CardTitle>
-                <CardDescription>Choose the development methodology for this project</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="methodology">Methodology</Label>
-                  <Select value={selectedMethodology} onValueChange={(value: string) => setSelectedMethodology(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a methodology" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {methodologies.map((method) => (
-                        <SelectItem key={method} value={method}>
-                          {method}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button onClick={setMethodology} disabled={!selectedMethodology}>
-                  Set Methodology
-                </Button>
-
-                <div className="space-y-2">
-                  <Label>Current Methodology</Label>
-                  <p>
-                    {project.methodology ? (
-                      <Badge>{project.methodology}</Badge>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">No methodology set</span>
-                    )}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="team">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Available Developers</CardTitle>
-                <CardDescription>Developers with skills matching project technologies</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {project.technologies.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Add technologies first to see available developers</p>
-                ) : (filteredDevelopers.length === 0 ? (
-                  <p className="text-muted-foreground">No developers found with matching skills.</p>
-                ) : (
-                  <div className="space-y-4">
-                    {filteredDevelopers
-                      .map((dev: Developer) => (
-                        <div key={dev.id} className="flex items-center justify-between rounded-lg border p-3">
-                          <div>
-                            <p className="font-medium">{dev.name}</p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {dev.skills
-                                .filter((skill: string) => project.technologies.includes(skill))
-                                .map((skill) => (
-                                  <Badge key={skill} variant="outline" className="text-xs">
-                                    {skill}
-                                  </Badge>
-                                ))}
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant={selectedTeam.includes(dev.name) ? "outline" : "default"}
-                            onClick={() => addDeveloperToTeam(dev.id)}
-                            disabled={selectedTeam.includes(dev.name)}
-                          >
-                            {selectedTeam.includes(dev.name) ? "Added" : "Add"}
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Team</CardTitle>
-                <CardDescription>Selected developers for this project</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {selectedTeam.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No team members selected yet</p>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedTeam.map((name: string, index: number) => (
-                      <div key={index} className="flex items-center justify-between rounded-lg border p-3">
-                        <p>{name}</p>
-                        <Button size="sm" variant="ghost" onClick={() => removeDeveloperFromTeam(name)}>
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <Button onClick={saveTeam} disabled={selectedTeam.length === 0} className="w-full">
-                  Save Team
-                </Button>
-
-                {selectedTeam.length > 0 && ( // Only show meeting scheduling if team is not empty
-                  <div className="space-y-2 pt-4 border-t">
-                    <Label htmlFor="meetingDate">Schedule Team Meeting</Label>
-                    <Input
-                      id="meetingDate"
-                      type="datetime-local"
-                      value={meetingDate}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMeetingDate(e.target.value)}
-                    />
-                    <Button onClick={scheduleMeeting} disabled={!meetingDate} className="w-full">
-                      Schedule Meeting
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="services">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Add Service</CardTitle>
-                <CardDescription>Create a new service for this project</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="serviceName">Service Name</Label>
-                  <Input
-                    id="serviceName"
-                    name="name"
-                    value={newService.name}
-                    onChange={handleNewServiceChange}
-                    placeholder="e.g., User Authentication"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="serviceDescription">Description</Label>
-                  <Textarea
-                    id="serviceDescription"
-                    name="description"
-                    value={newService.description}
-                    onChange={handleNewServiceChange}
-                    placeholder="Describe what this service will do"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="assignedTo">Assign To</Label>
-                  <Select
-                    value={newService.assignedTo}
-                    onValueChange={(value: string) => setNewService({ ...newService, assignedTo: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a team member" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {project.team.map((member: string) => (
-                        <SelectItem key={member} value={member}>
-                          {member}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Duration (days)</Label>
-                  <Input
-                    id="duration"
-                    name="duration"
-                    type="number"
-                    min="1"
-                    value={newService.duration}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNewServiceChange(e)}
-                    placeholder="Number of days required"
-                  />
-                </div>
-
                 <Button
-                  onClick={addService}
-                  disabled={!newService.name || !newService.assignedTo || !newService.duration || !project}
-                  className="w-full"
+                    variant={editing ? "default" : "outline"}
+                    onClick={() => setEditing(!editing)}
                 >
-                  Add Service
+                    {editing ? (
+                        <>
+                            <X className="mr-2 h-4 w-4" />
+                            Cancel
+                        </>
+                    ) : (
+                        <>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Project
+                        </>
+                    )}
                 </Button>
-              </CardContent>
-            </Card>
+            </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Services</CardTitle>
-                <CardDescription>Services assigned to team members</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {project.services.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No services added yet</p>
-                ) : (
-                  <div className="space-y-4">
-                    {project.services.map((service: Service) => (
-                      <div key={service.id} className="rounded-lg border p-4">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium">{service.name}</h3>
-                          <Badge variant="outline">{service.duration} days</Badge>
+            {editing ? (
+                <Card className="mb-6">
+                    <CardHeader>
+                        <CardTitle>Edit Project</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Project Name</Label>
+                            <Input
+                                id="name"
+                                value={editForm.name}
+                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            />
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
-                        <p className="text-sm mt-2">
-                          <span className="font-medium">Assigned to:</span> {service.assignedTo}
-                        </p>
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                                id="description"
+                                value={editForm.description}
+                                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="clientName">Client Name</Label>
+                            <Input
+                                id="clientName"
+                                value={editForm.clientName}
+                                onChange={(e) => setEditForm({ ...editForm, clientName: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="deadlineDate">Deadline Date</Label>
+                            <Input
+                                id="deadlineDate"
+                                type="date"
+                                value={editForm.deadlineDate}
+                                onChange={(e) => setEditForm({ ...editForm, deadlineDate: e.target.value })}
+                            />
+                        </div>
+                        <Button onClick={handleEditProject}>
+                            <Check className="mr-2 h-4 w-4" />
+                            Save Changes
+                        </Button>
+                    </CardContent>
+                </Card>
+            ) : null}
 
-                        {service.tasks.length > 0 && (
-                          <div className="mt-4 space-y-2">
-                            <p className="text-sm font-medium">Tasks:</p>
-                            {service.tasks.map((task: Task) => (
-                              <div key={task.id} className="flex items-center justify-between text-sm">
-                                <span>{task.name}</span>
-                                <span className="font-medium">{task.progress}%</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </DashboardLayout>
-  )
+            <Tabs defaultValue="overview">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="team">Team</TabsTrigger>
+                    <TabsTrigger value="technologies">Technologies</TabsTrigger>
+                    <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Project Details</CardTitle>
+                            <CardDescription>Basic information about the project</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Client</p>
+                                    <p>{project.clientName || "Not specified"}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Status</p>
+                                    <Badge>{project.status.name}</Badge>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Start Date</p>
+                                    <p className="flex items-center">
+                                        <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        {formatDate(project.startDate)}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Deadline</p>
+                                    <p className="flex items-center">
+                                        <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        {formatDate(project.deadlineDate)}
+                                    </p>
+                                </div>
+                                {project.endDate && (
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium text-muted-foreground">End Date</p>
+                                        <p className="flex items-center">
+                                            <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                                            {formatDate(project.endDate)}
+                                        </p>
+                                    </div>
+                                )}
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Completion</p>
+                                    <p className="flex items-center">
+                                        <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        {project.completionPercentage}%
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Director</p>
+                                    <p>
+                                        {project.director.firstName} {project.director.lastName}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Manager</p>
+                                    <p>
+                                        {project.manager.firstName} {project.manager.lastName}
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="team">
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Current Team</CardTitle>
+                                <CardDescription>Developers working on this project</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {project && Array.isArray(project.developers) && project.developers.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {project.developers.map(developer => (
+                                            <div key={`dev-${developer.id}`} className="flex items-center justify-between p-4 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">
+                                                        {developer?.firstName || 'Unknown'} {developer?.lastName || 'Developer'}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">{developer?.email || 'No email'}</p>
+                                                </div>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveDeveloper(developer.id)}
+                                                    disabled={removingDeveloperId === developer.id}
+                                                >
+                                                    {removingDeveloperId === developer.id ? "Removing..." : <Trash2 className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground">No developers assigned yet</p>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Available Developers</CardTitle>
+                                <CardDescription>Add developers to this project</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {availableDevelopers?.length ? (
+                                    <div className="space-y-4">
+                                        {availableDevelopers.map(developer => (
+                                            <div key={`avail-dev-${developer.id}`} className="flex items-center justify-between p-4 border rounded-lg">
+                                                <div>
+                                                    <p className="font-medium">
+                                                        {developer.firstName} {developer.lastName}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">{developer.email}</p>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleAddDeveloper(developer.id)}
+                                                    disabled={addingDeveloperId === developer.id}
+                                                >
+                                                    {addingDeveloperId === developer.id ? (
+                                                        "Adding..."
+                                                    ) : (
+                                                        <Plus className="h-4 w-4" />
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-muted-foreground">No available developers</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="technologies">
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Current Technologies</CardTitle>
+                                <CardDescription>Technologies used in this project</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {project.technologies.length === 0 ? (
+                                    <p className="text-muted-foreground">No technologies added yet</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {project.technologies.map((tech) => (
+                                            <div key={tech.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                                <Badge variant="secondary">{tech.name}</Badge>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => handleRemoveTechnology(tech.id)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Add Technology</CardTitle>
+                                <CardDescription>Add a technology to this project</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Select Technology</Label>
+                                    <Select
+                                        value={selectedTechnologyId?.toString() || ''}
+                                        onValueChange={(value) => setSelectedTechnologyId(Number(value))}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a technology" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {availableTechnologies
+                                                .filter(tech => !project.technologies.some(t => t.id === tech.id))
+                                                .map((tech) => (
+                                                    <SelectItem key={tech.id} value={tech.id.toString()}>
+                                                        {tech.name}
+                                                    </SelectItem>
+                                                ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <Button
+                                    onClick={handleAddTechnology}
+                                    disabled={!selectedTechnologyId}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Add Technology
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="tasks">
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Create New Task</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {/* Title */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="taskTitle">Title*</Label>
+                                    <Input
+                                        id="taskTitle"
+                                        value={newTask.title}
+                                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                                        placeholder="Task title"
+                                    />
+                                </div>
+
+                                {/* Description */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="taskDescription">Description*</Label>
+                                    <Textarea
+                                        id="taskDescription"
+                                        value={newTask.description}
+                                        onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                                        placeholder="Task description"
+                                        rows={3}
+                                    />
+                                </div>
+
+                                {/* Priority */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="taskPriority">Priority*</Label>
+                                    <Select
+                                        value={newTask.priorityId.toString()}
+                                        onValueChange={(value) => setNewTask({ ...newTask, priorityId: Number(value) })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select priority" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="1">Low</SelectItem>
+                                            <SelectItem value="2">Medium</SelectItem>
+                                            <SelectItem value="3">High</SelectItem>
+                                            <SelectItem value="4">Critical</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Status */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="taskStatus">Status*</Label>
+                                    <Select
+                                        value={newTask.statusId.toString()}
+                                        onValueChange={(value) => setNewTask({ ...newTask, statusId: Number(value) })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="1">To Do</SelectItem>
+                                            <SelectItem value="2">In Progress</SelectItem>
+                                            <SelectItem value="3">Review</SelectItem>
+                                            <SelectItem value="4">Completed</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Assignee */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="taskAssignee">Assign To*</Label>
+                                    <Select
+                                        value={newTask.assignedToId?.toString() || ''}
+                                        onValueChange={(value) => setNewTask({ ...newTask, assignedToId: Number(value) })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a developer" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {project?.developers?.map((dev) => (
+                                                <SelectItem key={dev.id} value={dev.id.toString()}>
+                                                    {dev.firstName} {dev.lastName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Due Date */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="taskDueDate">Due Date*</Label>
+                                    <Input
+                                        id="taskDueDate"
+                                        type="date"
+                                        value={newTask.dueDate}
+                                        onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                                    />
+                                </div>
+
+                                {/* Estimated Hours */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="taskEstimatedHours">Estimated Hours</Label>
+                                    <Input
+                                        id="taskEstimatedHours"
+                                        type="number"
+                                        min="0"
+                                        value={newTask.estimatedHours}
+                                        onChange={(e) => setNewTask({ ...newTask, estimatedHours: Number(e.target.value) })}
+                                    />
+                                </div>
+
+                                {/* Actual Hours */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="taskActualHours">Actual Hours</Label>
+                                    <Input
+                                        id="taskActualHours"
+                                        type="number"
+                                        min="0"
+                                        value={newTask.actualHours}
+                                        onChange={(e) => setNewTask({ ...newTask, actualHours: Number(e.target.value) })}
+                                    />
+                                </div>
+
+                                <Button
+                                    onClick={handleCreateTask}
+                                    disabled={!newTask.title || !newTask.description || !newTask.assignedToId}
+                                    className="w-full"
+                                >
+                                    Create Task
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Project Tasks</CardTitle>
+                                <CardDescription>Tasks for this project</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {project.tasks.length === 0 ? (
+                                    <p className="text-muted-foreground">No tasks created yet</p>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {project.tasks.map((task) => (
+                                            <div key={task.id} className="p-4 border rounded-lg">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="font-medium">{task.title}</h3>
+                                                    <Badge variant="outline">{task.progress}%</Badge>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                                                <div className="mt-2 flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm">
+                                                            <span className="font-medium">Assigned to:</span> {task.assignedTo.firstName} {task.assignedTo.lastName}
+                                                        </p>
+                                                        <p className="text-sm">
+                                                            <span className="font-medium">Due:</span> {formatDate(task.dueDate)}
+                                                        </p>
+                                                    </div>
+                                                    <Select
+                                                        value={task.status.id.toString()}
+                                                        onValueChange={(value) => handleUpdateTaskStatus(task.id, Number(value))}
+                                                    >
+                                                        <SelectTrigger className="w-[150px]">
+                                                            <SelectValue placeholder="Status" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="1">To Do</SelectItem>
+                                                            <SelectItem value="2">In Progress</SelectItem>
+                                                            <SelectItem value="3">Review</SelectItem>
+                                                            <SelectItem value="4">Completed</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+            </Tabs>
+
+            <div className="mt-6">
+                <Button variant="outline" onClick={() => navigate("/manager/projects")}>
+                    Back to Projects
+                </Button>
+            </div>
+        </DashboardLayout>
+    )
 }

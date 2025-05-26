@@ -94,23 +94,65 @@ namespace ReactApp1.Server.Services
 
         public Project GetById(int id)
         {
-            var project = _context.Projects
-                .Include(p => p.Manager)
-                .Include(p => p.Director)
-                .Include(p => p.Developers)
-                    .ThenInclude(pd => pd.Developer)
-                .Include(p => p.Technologies)
-                    .ThenInclude(pt => pt.Technology)
-                .Include(p => p.Tasks)
-                    .ThenInclude(t => t.Comments)
-                .Include(p => p.Tasks)
-                    .ThenInclude(t => t.ProgressUpdates)
-                .FirstOrDefault(p => p.Id == id);
-
-            if (project == null)
-                throw new KeyNotFoundException("Project not found");
-
-            return project;
+            return _context.Projects
+                .Where(p => p.Id == id)
+                .Select(p => new Project
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    StartDate = p.StartDate,
+                    DeadlineDate = p.DeadlineDate,
+                    EndDate = p.EndDate,
+                    StatusId = p.StatusId,
+                    Status = p.Status,
+                    ManagerId = p.ManagerId,
+                    Manager = p.Manager,
+                    DirectorId = p.DirectorId,
+                    Director = p.Director,
+                    Developers = p.Developers,
+                    Technologies = p.Technologies,
+                    Tasks = p.Tasks.Select(t => new TaskItem
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        PriorityId = t.PriorityId,
+                        Priority = t.Priority,
+                        StatusId = t.StatusId,
+                        Status = t.Status,
+                        DueDate = t.DueDate,
+                        EndDate = t.EndDate,
+                        AssignedToId = t.AssignedToId,
+                        AssignedTo = t.AssignedTo,
+                        ProjectId = t.ProjectId,
+                        EstimatedHours = t.EstimatedHours,
+                        ActualHours = t.ActualHours,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt,
+                        Comments = t.Comments.Select(c => new TaskComment
+                        {
+                            Id = c.Id,
+                            Content = c.Content,
+                            CreatedAt = c.CreatedAt,
+                            TaskId = c.TaskId,
+                            UserId = c.UserId,
+                            User = c.User
+                        }).ToList(),
+                        ProgressUpdates = t.ProgressUpdates.Select(pu => new TaskProgress
+                        {
+                            Id = pu.Id,
+                            Description = pu.Description,
+                            PercentageComplete = pu.PercentageComplete,
+                            UpdatedAt = pu.UpdatedAt,
+                            TaskId = pu.TaskId,
+                            UserId = pu.UserId,
+                            User = pu.User
+                        }).ToList()
+                    }).ToList()
+                })
+                .AsNoTracking()
+                .FirstOrDefault()!;
         }
 
         public Project Create(Project project)
@@ -194,30 +236,125 @@ namespace ReactApp1.Server.Services
         {
             return _context.Projects
                 .Where(p => p.DirectorId == directorId)
-                .Include(p => p.Manager)
-                .Include(p => p.Developers)
-                    .ThenInclude(pd => pd.Developer)
-                .Include(p => p.Technologies)
-                    .ThenInclude(pt => pt.Technology)
-                .Include(p => p.Tasks)
-                    .ThenInclude(t => t.Comments)
-                .Include(p => p.Tasks)
-                    .ThenInclude(t => t.ProgressUpdates)
+                .Select(p => new Project
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    StartDate = p.StartDate,
+                    DeadlineDate = p.DeadlineDate,
+                    EndDate = p.EndDate,
+                    StatusId = p.StatusId,
+                    Status = p.Status,
+                    ManagerId = p.ManagerId,
+                    Manager = p.Manager,
+                    DirectorId = p.DirectorId,
+                    Director = p.Director,
+                    Developers = p.Developers,
+                    Technologies = p.Technologies,
+                    Tasks = p.Tasks.Select(t => new TaskItem
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        PriorityId = t.PriorityId,
+                        Priority = t.Priority,
+                        StatusId = t.StatusId,
+                        Status = t.Status,
+                        DueDate = t.DueDate,
+                        EndDate = t.EndDate,
+                        AssignedToId = t.AssignedToId,
+                        AssignedTo = t.AssignedTo,
+                        ProjectId = t.ProjectId,
+                        EstimatedHours = t.EstimatedHours,
+                        ActualHours = t.ActualHours,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt,
+                        Comments = t.Comments.Select(c => new TaskComment
+                        {
+                            Id = c.Id,
+                            Content = c.Content,
+                            CreatedAt = c.CreatedAt,
+                            TaskId = c.TaskId,
+                            UserId = c.UserId,
+                            User = c.User
+                        }).ToList(),
+                        ProgressUpdates = t.ProgressUpdates.Select(pu => new TaskProgress
+                        {
+                            Id = pu.Id,
+                            Description = pu.Description,
+                            PercentageComplete = pu.PercentageComplete,
+                            UpdatedAt = pu.UpdatedAt,
+                            TaskId = pu.TaskId,
+                            UserId = pu.UserId,
+                            User = pu.User
+                        }).ToList()
+                    }).ToList()
+                })
                 .AsNoTracking()
                 .ToList();
         }
+
 
         public IEnumerable<Project> GetByManager(int managerId)
         {
             return _context.Projects
                 .Where(p => p.ManagerId == managerId)
-                .Include(p => p.Director)
-                .Include(p => p.Developers)
-                .Include(p => p.Technologies)
-                .Include(p => p.Tasks)
-                    .ThenInclude(t => t.Comments)
-                .Include(p => p.Tasks)
-                    .ThenInclude(t => t.ProgressUpdates)
+                .Select(p => new Project
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    StartDate = p.StartDate,
+                    DeadlineDate = p.DeadlineDate,
+                    EndDate = p.EndDate,
+                    StatusId = p.StatusId,
+                    Status = p.Status,
+                    ManagerId = p.ManagerId,
+                    Manager = p.Manager,
+                    DirectorId = p.DirectorId,
+                    Director = p.Director,
+                    Developers = p.Developers,
+                    Technologies = p.Technologies,
+                    Tasks = p.Tasks.Select(t => new TaskItem
+                    {
+                        Id = t.Id,
+                        Title = t.Title,
+                        Description = t.Description,
+                        PriorityId = t.PriorityId,
+                        Priority = t.Priority,
+                        StatusId = t.StatusId,
+                        Status = t.Status,
+                        DueDate = t.DueDate,
+                        EndDate = t.EndDate,
+                        AssignedToId = t.AssignedToId,
+                        AssignedTo = t.AssignedTo,
+                        ProjectId = t.ProjectId,
+                        EstimatedHours = t.EstimatedHours,
+                        ActualHours = t.ActualHours,
+                        CreatedAt = t.CreatedAt,
+                        UpdatedAt = t.UpdatedAt,
+                        Comments = t.Comments.Select(c => new TaskComment
+                        {
+                            Id = c.Id,
+                            Content = c.Content,
+                            CreatedAt = c.CreatedAt,
+                            TaskId = c.TaskId,
+                            UserId = c.UserId,
+                            User = c.User
+                        }).ToList(),
+                        ProgressUpdates = t.ProgressUpdates.Select(pu => new TaskProgress
+                        {
+                            Id = pu.Id,
+                            Description = pu.Description,
+                            PercentageComplete = pu.PercentageComplete,
+                            UpdatedAt = pu.UpdatedAt,
+                            TaskId = pu.TaskId,
+                            UserId = pu.UserId,
+                            User = pu.User
+                        }).ToList()
+                    }).ToList()
+                })
                 .AsNoTracking()
                 .ToList();
         }
