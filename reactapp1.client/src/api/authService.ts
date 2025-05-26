@@ -57,7 +57,25 @@ export interface Task {
     assignedTo: User;
     dueDate: string;
 }
-
+interface TaskCreatePayload {
+    title: string;
+    description: string;
+    priority: {
+        id: number;
+    };
+    status: {
+        id: number;
+    };
+    assignedTo?: {
+        id: number;
+    } | null;
+    dueDate: string;
+    project: {
+        id: number;
+    };
+    estimatedHours?: number;
+    actualHours?: number;
+}
 export interface Technology {
     id: number;
     name: string;
@@ -204,17 +222,7 @@ export const tasksApi = {
   getMyTasks: () => 
     api.get('/tasks/my'),
 
-  create: (task: {
-    title: string;
-    description: string;
-    priorityId: number;
-    statusId: number;
-    assignedToId: number;
-    dueDate: string;
-    projectId: number;
-    estimatedHours?: number;
-    actualHours?: number;
-    }) => api.post('/tasks', task),
+  create: (task: TaskCreatePayload) => api.post('/tasks', task),
   
   update: (id: number, task: string) => 
     api.put(`/tasks/${id}`, task),

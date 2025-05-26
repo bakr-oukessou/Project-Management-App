@@ -61,12 +61,30 @@ interface Project {
     completionPercentage: number
     clientName: string | null
 }
-
+interface TaskCreatePayload {
+    title: string;
+    description: string;
+    priority: {
+        id: number;
+    };
+    status: {
+        id: number;
+    };
+    assignedTo?: {
+        id: number;
+    } | null;
+    dueDate: string;
+    project: {
+        id: number;
+    };
+    estimatedHours?: number;
+    actualHours?: number;
+}
 interface NewTaskForm {
     title: string;
     description: string;
-    priorityId: number;  // Required
-    statusId: number;    // Required
+    priorityId: number;
+    statusId: number;
     assignedToId: number | null;
     dueDate: string;
     estimatedHours?: number;
@@ -91,8 +109,8 @@ export default function ManagerProjectDetails() {
     const [newTask, setNewTask] = useState<NewTaskForm>({
         title: '',
         description: '',
-        priorityId: 2, // Default to Medium priority
-        statusId: 1,   // Default to ToDo status
+        priorityId: 2, // Default to Medium
+        statusId: 1,   // Default to To Do
         assignedToId: null,
         dueDate: new Date().toISOString().split('T')[0],
         estimatedHours: 0,
@@ -332,34 +350,42 @@ export default function ManagerProjectDetails() {
         }
 
         try {
-            // Prepare the task payload according to your model
-            const taskPayload = {
+            // Create the exact payload structure the API expects
+            const taskPayload: TaskCreatePayload = {
                 title: newTask.title,
                 description: newTask.description,
-                priorityId: newTask.priorityId,
-                statusId: newTask.statusId,
-                assignedToId: newTask.assignedToId,
+                priority: {
+                    id: newTask.priorityId
+                },
+                status: {
+                    id: newTask.statusId
+                },
+                assignedTo: newTask.assignedToId ? {
+                    id: newTask.assignedToId
+                } : null,
                 dueDate: newTask.dueDate,
-                projectId: Number(id),
+                project: {
+                    id: Number(id)
+                },
                 estimatedHours: newTask.estimatedHours || 0,
                 actualHours: newTask.actualHours || 0
             };
 
-            console.log("Creating task with payload:", taskPayload);
+            console.log("Sending task payload:", JSON.stringify(taskPayload, null, 2));
 
             const response = await tasksApi.create(taskPayload);
-            console.log("Task created:", response.data);
+            console.log("Task created successfully:", response.data);
 
-            // Refresh the project to get the updated task list
+            // Refresh the project to get updated tasks
             const projectResponse = await projectsApi.getById(Number(id));
             setProject(projectResponse.data);
 
-            // Reset the form
+            // Reset form
             setNewTask({
                 title: '',
                 description: '',
-                priorityId: 2,
-                statusId: 1,
+                priorityId: 2, // Medium
+                statusId: 1,  // To Do
                 assignedToId: null,
                 dueDate: new Date().toISOString().split('T')[0],
                 estimatedHours: 0,
@@ -370,11 +396,19 @@ export default function ManagerProjectDetails() {
                 title: "Success",
                 description: "Task created successfully",
             });
-        } catch (error) {
-            console.error("Failed to create task:", error);
+        } catch (error: any) {
+            console.error("Task creation failed:", error.response?.data || error.message);
+
+            let errorMessage = "Could not create task";
+            if (error.response?.data?.errors) {
+                errorMessage = Object.values(error.response.data.errors)
+                    .flat()
+                    .join('\n');
+            }
+
             toast({
                 title: "Error",
-                description: "Could not create task",
+                description: errorMessage,
                 variant: "destructive"
             });
         }
