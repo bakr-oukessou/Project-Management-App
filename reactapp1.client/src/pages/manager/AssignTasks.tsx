@@ -36,26 +36,26 @@ interface NewServiceFormData {
   duration: string
 }
 
-// Sample data - in a real app, this would come from a database
+
 const sampleProjects: Project[] = [
   {
     id: "1",
     name: "E-commerce Platform",
     description: "A full-featured e-commerce platform with payment integration",
-    team: ["Alex Chen", "Maria Garcia", "Sam Wilson"],
+    team: ["Bakr Oukessou", "Anas Bzioui", "Yahya Bennouna"],
     services: [
       {
         id: "s1",
         name: "User Authentication",
         description: "Implement secure user authentication with OAuth",
-        assignedTo: "Alex Chen",
+        assignedTo: "Bakr Oukessou",
         duration: 5,
       },
       {
         id: "s2",
         name: "Payment Processing",
         description: "Integrate payment gateway for secure transactions",
-        assignedTo: "Maria Garcia",
+        assignedTo: "Yahya Bennouna",
         duration: 7,
       },
     ],
@@ -64,7 +64,7 @@ const sampleProjects: Project[] = [
     id: "2",
     name: "CRM System",
     description: "Customer relationship management system with analytics",
-    team: ["Taylor Johnson", "Jordan Lee"],
+    team: ["Bakr Oukessou", "Jordan Lee"],
     services: [],
   },
 ]

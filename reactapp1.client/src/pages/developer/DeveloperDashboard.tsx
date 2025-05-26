@@ -9,7 +9,7 @@ import DashboardLayout from "../../components/dashboard-layout"
 import { Badge } from "../../components/ui/badge"
 import { authApi, usersApi } from "../../api/authService"
 
-// Sample data - in a real app, this would come from a database
+
 const sampleProjects = [
   {
     id: "1",

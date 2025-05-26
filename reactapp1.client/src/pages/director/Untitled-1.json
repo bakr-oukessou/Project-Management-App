@@ -1,0 +1,262 @@
+{
+  "id": 0,
+  "name": "string",
+  "description": "string",
+  "startDate": "2025-05-26T12:59:59.368Z",
+  "deadlineDate": "2025-05-26T12:59:59.368Z",
+  "endDate": "2025-05-26T12:59:59.368Z",
+  "createdAt": "2025-05-26T12:59:59.368Z",
+  "updatedAt": "2025-05-26T12:59:59.368Z",
+  "statusId": 0,
+  "status": {
+    "id": 0,
+    "name": "string",
+    "projects": [
+      "string"
+    ]
+  },
+  "managerId": 0,
+  "manager": {
+    "id": 0,
+    "username": "string",
+    "email": "user@example.com",
+    "role": 0,
+    "firstName": "string",
+    "lastName": "string",
+    "profilePicture": "string",
+    "managedProjects": [
+      "string"
+    ],
+    "projects": [
+      {
+        "projectId": 0,
+        "project": "string",
+        "developerId": 0,
+        "developer": "string",
+        "assignedDate": "2025-05-26T12:59:59.368Z"
+      }
+    ],
+    "assignedTasks": [
+      {
+        "id": 0,
+        "title": "string",
+        "description": "string",
+        "priorityId": 0,
+        "priority": {
+          "id": 0,
+          "name": "string",
+          "tasks": [
+            "string"
+          ]
+        },
+        "statusId": 0,
+        "status": {
+          "id": 0,
+          "name": "string",
+          "tasks": [
+            "string"
+          ]
+        },
+        "dueDate": "2025-05-26T12:59:59.368Z",
+        "endDate": "2025-05-26T12:59:59.368Z",
+        "assignedToId": 0,
+        "assignedTo": "string",
+        "projectId": 0,
+        "project": "string",
+        "estimatedHours": 0,
+        "actualHours": 0,
+        "createdAt": "2025-05-26T12:59:59.368Z",
+        "updatedAt": "2025-05-26T12:59:59.368Z",
+        "comments": [
+          {
+            "id": 0,
+            "content": "string",
+            "createdAt": "2025-05-26T12:59:59.368Z",
+            "taskId": 0,
+            "task": "string",
+            "userId": 0,
+            "user": "string"
+          }
+        ],
+        "progressUpdates": [
+          {
+            "id": 0,
+            "description": "string",
+            "percentageComplete": 100,
+            "updatedAt": "2025-05-26T12:59:59.368Z",
+            "taskId": 0,
+            "task": "string",
+            "userId": 0,
+            "user": "string"
+          }
+        ],
+        "priorityLevel": 1,
+        "statusLevel": 1
+      }
+    ]
+  },
+  "directorId": 0,
+  "director": {
+    "id": 0,
+    "username": "string",
+    "email": "user@example.com",
+    "role": 0,
+    "firstName": "string",
+    "lastName": "string",
+    "profilePicture": "string",
+    "managedProjects": [
+      "string"
+    ],
+    "projects": [
+      {
+        "projectId": 0,
+        "project": "string",
+        "developerId": 0,
+        "developer": "string",
+        "assignedDate": "2025-05-26T12:59:59.368Z"
+      }
+    ],
+    "assignedTasks": [
+      {
+        "id": 0,
+        "title": "string",
+        "description": "string",
+        "priorityId": 0,
+        "priority": {
+          "id": 0,
+          "name": "string",
+          "tasks": [
+            "string"
+          ]
+        },
+        "statusId": 0,
+        "status": {
+          "id": 0,
+          "name": "string",
+          "tasks": [
+            "string"
+          ]
+        },
+        "dueDate": "2025-05-26T12:59:59.368Z",
+        "endDate": "2025-05-26T12:59:59.368Z",
+        "assignedToId": 0,
+        "assignedTo": "string",
+        "projectId": 0,
+        "project": "string",
+        "estimatedHours": 0,
+        "actualHours": 0,
+        "createdAt": "2025-05-26T12:59:59.368Z",
+        "updatedAt": "2025-05-26T12:59:59.368Z",
+        "comments": [
+          {
+            "id": 0,
+            "content": "string",
+            "createdAt": "2025-05-26T12:59:59.368Z",
+            "taskId": 0,
+            "task": "string",
+            "userId": 0,
+            "user": "string"
+          }
+        ],
+        "progressUpdates": [
+          {
+            "id": 0,
+            "description": "string",
+            "percentageComplete": 100,
+            "updatedAt": "2025-05-26T12:59:59.368Z",
+            "taskId": 0,
+            "task": "string",
+            "userId": 0,
+            "user": "string"
+          }
+        ],
+        "priorityLevel": 1,
+        "statusLevel": 1
+      }
+    ]
+  },
+  "developers": [
+    {
+      "projectId": 0,
+      "project": "string",
+      "developerId": 0,
+      "developer": "string",
+      "assignedDate": "2025-05-26T12:59:59.368Z"
+    }
+  ],
+  "technologies": [
+    {
+      "projectId": 0,
+      "project": "string",
+      "technologyId": 0,
+      "technology": {
+        "id": 0,
+        "name": "string",
+        "description": "string",
+        "category": "string",
+        "projects": [
+          "string"
+        ]
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": 0,
+      "title": "string",
+      "description": "string",
+      "priorityId": 0,
+      "priority": {
+        "id": 0,
+        "name": "string",
+        "tasks": [
+          "string"
+        ]
+      },
+      "statusId": 0,
+      "status": {
+        "id": 0,
+        "name": "string",
+        "tasks": [
+          "string"
+        ]
+      },
+      "dueDate": "2025-05-26T12:59:59.368Z",
+      "endDate": "2025-05-26T12:59:59.368Z",
+      "assignedToId": 0,
+      "assignedTo": "string",
+      "projectId": 0,
+      "project": "string",
+      "estimatedHours": 0,
+      "actualHours": 0,
+      "createdAt": "2025-05-26T12:59:59.368Z",
+      "updatedAt": "2025-05-26T12:59:59.368Z",
+      "comments": [
+        {
+          "id": 0,
+          "content": "string",
+          "createdAt": "2025-05-26T12:59:59.368Z",
+          "taskId": 0,
+          "task": "string",
+          "userId": 0,
+          "user": "string"
+        }
+      ],
+      "progressUpdates": [
+        {
+          "id": 0,
+          "description": "string",
+          "percentageComplete": 100,
+          "updatedAt": "2025-05-26T12:59:59.368Z",
+          "taskId": 0,
+          "task": "string",
+          "userId": 0,
+          "user": "string"
+        }
+      ],
+      "priorityLevel": 1,
+      "statusLevel": 1
+    }
+  ],
+  "clientName": "string"
+}

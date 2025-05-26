@@ -26,7 +26,6 @@ interface Developer {
   skills: string[]
 }
 
-// Sample data - in a real app, this would come from a database
 const sampleProjects: Project[] = [
   {
     id: "1",

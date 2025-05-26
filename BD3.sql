@@ -433,7 +433,7 @@ INSERT INTO Tasks (Title, Description, StatusId, PriorityId, DueDate, EndDate, A
 ('Inventory Reporting Module', 'Create reporting features for inventory levels', 3, 2, '2024-06-01', NULL, 1, 3, 30, 22, '2024-05-21')
 
 INSERT INTO Projects (Name, Description, StartDate, DeadlineDate, EndDate, StatusId, ManagerId, DirectorId, ClientName, UpdatedAt) VALUES
-('AUlIOs Platform Redesign', 'Complete overhaul of the existing e-commerce platform with modern UI/UX and improved performance', '2024-03-01', '2024-08-15', NULL, 2, 15, 1, 'TechMart Inc.', '2024-05-20'),
-('Mobile App', 'Development of a secure mobile banking application for iOS and Android platforms', '2024-04-15', '2024-10-30', NULL, 2, 15, 1, 'SecureBank Ltd.', '2024-05-21')
+('KOR Platform Redesign', 'Complete overhaul of the existing e-commerce platform with modern UI/UX and improved performance', '2024-03-01', '2024-08-15', NULL, 2, 15, 16, 'TechMart Inc.', '2024-05-20'),
+('Mobile App for yoga', 'Development of a secure mobile banking application for iOS and Android platforms', '2024-04-15', '2024-10-30', NULL, 2, 15, 16, 'SecureBank Ltd.', '2024-05-21')
 select * from users;
 select * from projects;

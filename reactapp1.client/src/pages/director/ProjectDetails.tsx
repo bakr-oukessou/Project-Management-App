@@ -41,17 +41,16 @@ interface Project {
   services: Service[]
 }
 
-// Sample data - in a real app, this would come from a database
 const sampleProjects: Project[] = [
   {
     id: "1",
-    name: "E-commerce Platform",
-    description: "A full-featured e-commerce platform with payment integration",
-    client: "RetailCorp Inc.",
+    name: "KOR Platform Redesign",
+    description: "Complete overhaul of the existing e-commerce platform with modern UI/UX and improved performance",
+    client: "TechMart Inc.",
     startDate: "2023-06-15",
     endDate: "2023-12-15",
     developmentDays: 120,
-    projectManager: "Jane Smith",
+    projectManager: "Riad Elmoudden",
     status: "In Progress",
     technologies: [".NET", "React", "SQL Server"],
     methodology: "Agile",
@@ -62,7 +61,7 @@ const sampleProjects: Project[] = [
         id: "s1",
         name: "User Authentication",
         description: "Implement secure user authentication with OAuth",
-        assignedTo: "Alex Chen",
+        assignedTo: "Bakr Oukessou",
         duration: 5,
         tasks: [
           { id: "t1", name: "Setup OAuth providers", progress: 100 },
@@ -74,7 +73,7 @@ const sampleProjects: Project[] = [
         id: "s2",
         name: "Payment Processing",
         description: "Integrate payment gateway for secure transactions",
-        assignedTo: "Maria Garcia",
+        assignedTo: "Anas Bzioui",
         duration: 7,
         tasks: [
           { id: "t4", name: "Research payment providers", progress: 100 },
@@ -86,13 +85,13 @@ const sampleProjects: Project[] = [
   },
   {
     id: "2",
-    name: "CRM System",
+    name: "Mobile App for yoga",
     description: "Customer relationship management system with analytics",
     client: "ServicePro Ltd.",
     startDate: "2023-07-01",
     endDate: "2023-10-30",
     developmentDays: 90,
-    projectManager: "John Doe",
+    projectManager: "Anas Bzioui",
     status: "Planning",
     technologies: ["Java", "Angular", "PostgreSQL"],
     methodology: "Scrum",
@@ -107,7 +106,7 @@ export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>()
 
   useEffect(() => {
-    // In a real app, you would fetch the project data from an API
+    
     const foundProject = sampleProjects.find((p) => p.id === id)
     setProject(foundProject || null)
   }, [id])

@@ -62,24 +62,17 @@ interface Project {
     clientName: string | null
 }
 interface TaskCreatePayload {
-    title: string;
-    description: string;
-    priority: {
-        id: number;
-    };
-    status: {
-        id: number;
-    };
-    assignedTo?: {
-        id: number;
-    } | null;
-    dueDate: string;
-    project: {
-        id: number;
-    };
-    estimatedHours?: number;
-    actualHours?: number;
+    Title: string;
+    Description: string;
+    PriorityId: number;
+    StatusId: number;
+    AssignedToId?: number | null;
+    DueDate: string; // ISO string format
+    ProjectId: number;
+    EstimatedHours?: number | null;
+    ActualHours?: number | null;
 }
+
 interface NewTaskForm {
     title: string;
     description: string;
@@ -109,8 +102,8 @@ export default function ManagerProjectDetails() {
     const [newTask, setNewTask] = useState<NewTaskForm>({
         title: '',
         description: '',
-        priorityId: 2, // Default to Medium
-        statusId: 1,   // Default to To Do
+        priorityId: 2, // Make sure this corresponds to a valid Priority ID in your database
+        statusId: 1,   // Make sure this corresponds to a valid Status ID in your database
         assignedToId: null,
         dueDate: new Date().toISOString().split('T')[0],
         estimatedHours: 0,
@@ -340,42 +333,37 @@ export default function ManagerProjectDetails() {
     }
 
     const handleCreateTask = async () => {
-        if (!newTask.title || !newTask.description || !newTask.assignedToId) {
+        if (!newTask.title || !newTask.description) {
             toast({
                 title: "Error",
-                description: "Please fill all required fields",
+                description: "Title and description are required",
                 variant: "destructive"
             });
             return;
         }
-
+    
         try {
-            // Create the exact payload structure the API expects
-            const taskPayload: TaskCreatePayload = {
-                title: newTask.title,
-                description: newTask.description,
-                priority: {
-                    id: newTask.priorityId
-                },
-                status: {
-                    id: newTask.statusId
-                },
-                assignedTo: newTask.assignedToId ? {
-                    id: newTask.assignedToId
-                } : null,
-                dueDate: newTask.dueDate,
-                project: {
-                    id: Number(id)
-                },
-                estimatedHours: newTask.estimatedHours || 0,
-                actualHours: newTask.actualHours || 0
+            // Ensure all required fields are properly set
+            const taskPayload = {
+                Title: newTask.title,
+                Description: newTask.description,
+                PriorityId: newTask.priorityId, // Make sure this is not null/undefined
+                StatusId: newTask.statusId,     // Make sure this is not null/undefined
+                ProjectId: Number(id),          // Make sure this is not null/undefined
+                AssignedToId: newTask.assignedToId || null,
+                DueDate: newTask.dueDate,
+                EstimatedHours: newTask.estimatedHours || 0,
+                ActualHours: newTask.actualHours || 0
             };
-
+    
             console.log("Sending task payload:", JSON.stringify(taskPayload, null, 2));
-
-            const response = await tasksApi.create(taskPayload);
-            console.log("Task created successfully:", response.data);
-
+            console.log('Task creation values:', {
+                priorityId: newTask.priorityId,
+                statusId: newTask.statusId,
+                projectId: Number(id)
+            });
+            await tasksApi.create(taskPayload);
+        
             // Refresh the project to get updated tasks
             const projectResponse = await projectsApi.getById(Number(id));
             setProject(projectResponse.data);

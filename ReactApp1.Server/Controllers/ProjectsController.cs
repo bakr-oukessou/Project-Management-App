@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ReactApp1.Server.Interfaces;
 using ReactApp1.Server.Models;
+using ReactApp1.Server.Models.Dtos;
 
 namespace ReactApp1.Server.Controllers
 {
@@ -51,6 +53,33 @@ namespace ReactApp1.Server.Controllers
 
             var createdProject = _projectService.Create(project);
             return CreatedAtAction(nameof(GetById), new { id = createdProject.Id }, createdProject);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Director")]
+        public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] CreateProjectDto createProjectDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var project = new Project
+            {
+                Name = createProjectDto.Name,
+                Description = createProjectDto.Description,
+                StartDate = createProjectDto.StartDate,
+                DeadlineDate = createProjectDto.DeadlineDate,
+                ClientName = createProjectDto.ClientName,
+                DirectorId = User.GetUserId(),
+                StatusId = _context.ProjectStatuses.FirstOrDefault(s => s.Name == "Planning")?.Id ?? 1,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Projects.Add(project);
+            await _context.SaveChangesAsync();
+
+            return Ok(_mapper.Map<ProjectDto>(project));
         }
 
         [HttpPut("{id}")]

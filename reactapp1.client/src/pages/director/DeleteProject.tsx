@@ -7,61 +7,87 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertTriangle } from "lucide-react"
 import { useToast } from "../../hooks/use-toast"
 import DashboardLayout from "../../components/dashboard-layout"
+import { projectsApi } from "../../api/authService"
 
 interface Project {
-  id: string
+  id: number
   name: string
-  client: string
-  projectManager: string
+  clientName: string | null
+  manager: {
+    firstName: string
+    lastName: string
+  } | null
 }
-
-// Sample data - in a real app, this would come from a database
-const sampleProjects: Project[] = [
-  {
-    id: "1",
-    name: "E-commerce Platform",
-    client: "RetailCorp Inc.",
-    projectManager: "Jane Smith",
-  },
-  {
-    id: "2",
-    name: "CRM System",
-    client: "ServicePro Ltd.",
-    projectManager: "John Doe",
-  },
-]
 
 export default function DeleteProject() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const [project, setProject] = useState<Project | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isDeleting, setIsDeleting] = useState(false)
   const { id } = useParams()
 
   useEffect(() => {
-    // In a real app, you would fetch the project data from an API
-    const foundProject = sampleProjects.find((p) => p.id === id)
-    setProject(foundProject || null)
+    const fetchProject = async () => {
+      try {
+        setLoading(true)
+        const response = await projectsApi.getById(Number(id))
+        setProject(response.data)
+      } catch (error) {
+        console.error("Failed to fetch project:", error)
+        toast({
+          title: "Error",
+          description: "Failed to load project details",
+          variant: "destructive"
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProject()
   }, [id])
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!project) return
 
-    // In a real application, you would delete the project from the database
-    // For demo purposes, we'll just simulate a successful deletion
+    try {
+      setIsDeleting(true)
+      await projectsApi.delete(Number(id))
+      
+      toast({
+        title: "Project deleted",
+        description: `Project "${project.name}" has been deleted successfully.`,
+      })
 
-    toast({
-      title: "Project deleted",
-      description: `Project "${project.name}" has been deleted successfully.`,
-    })
+      navigate("/director/projects/index")
+    } catch (error) {
+      console.error("Failed to delete project:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
-    navigate("/director/projects/index")
+  if (loading) {
+    return (
+      <DashboardLayout title="Delete Project" userRole="director">
+        <div className="flex items-center justify-center h-40">
+          <p>Loading project details...</p>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   if (!project) {
     return (
       <DashboardLayout title="Delete Project" userRole="director">
         <div className="flex items-center justify-center h-40">
-          <p>Loading project details...</p>
+          <p>Project not found</p>
         </div>
       </DashboardLayout>
     )
@@ -78,16 +104,16 @@ export default function DeleteProject() {
         <CardContent className="space-y-4">
           <div className="rounded-lg border p-4">
             <p className="font-medium text-lg">{project.name}</p>
-            <p className="text-sm text-muted-foreground">Client: {project.client}</p>
-            <p className="text-sm text-muted-foreground">Project Manager: {project.projectManager}</p>
+            <p className="text-sm text-muted-foreground">Client: {project.clientName || "N/A"}</p>
+            <p className="text-sm text-muted-foreground">Project Manager: {project.manager ? `${project.manager.firstName} ${project.manager.lastName}` : "Unassigned"}</p>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
           <Link to="/director/projects/index">
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" disabled={isDeleting}>Cancel</Button>
           </Link>
-          <Button variant="destructive" onClick={handleDelete}>
-            Delete Project
+          <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+            {isDeleting ? "Deleting..." : "Delete Project"}
           </Button>
         </CardFooter>
       </Card>

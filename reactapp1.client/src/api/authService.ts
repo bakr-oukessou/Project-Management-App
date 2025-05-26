@@ -1,7 +1,7 @@
 ﻿// authService.ts
 // Service for authentication API calls
 
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 // const API_URL = '/api/auth/';
 const API_URL = 'https://localhost:7151/api';
@@ -25,6 +25,66 @@ export interface AuthResponse {
     email: string;
     name: string;
   };
+}
+export interface ProjectDto {
+    id: number;
+    name: string;
+    description: string;
+    startDate: string;
+    deadlineDate: string;
+    endDate: string | null;
+    status: {
+        id: number;
+        name: string;
+    };
+    manager: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+    } | null;
+    director: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+    };
+    developers: Array<{
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+    }>;
+    technologies: Array<{
+        id: number;
+        name: string;
+    }>;
+    tasks: Array<{
+        id: number;
+        title: string;
+        status: string;
+        progress: number;
+    }>;
+    completionPercentage: number;
+    clientName: string | null;
+}
+
+export interface CreateProjectDto {
+    name: string;
+    description: string;
+    startDate: string;
+    deadlineDate: string;
+    clientName?: string;
+}
+
+export interface UpdateProjectDto {
+    name?: string;
+    description?: string;
+    startDate?: string;
+    deadlineDate?: string;
+    clientName?: string | null;
+    statusId?: number;
+    managerId?: number | null;
 }
 export interface Project {
     id: number;
@@ -58,33 +118,25 @@ export interface Task {
     dueDate: string;
 }
 interface TaskCreatePayload {
-    title: string;
-    description: string;
-    priority: {
-        id: number;
-    };
-    status: {
-        id: number;
-    };
-    assignedTo?: {
-        id: number;
-    } | null;
-    dueDate: string;
-    project: {
-        id: number;
-    };
-    estimatedHours?: number;
-    actualHours?: number;
+    Title: string;
+    Description: string;
+    PriorityId: number;
+    StatusId: number;
+    AssignedToId?: number | null;
+    DueDate: string;
+    ProjectId: number;
+    EstimatedHours?: number | null;
+    ActualHours?: number | null;
 }
-export interface Technology {
+
+interface TaskStatus {
     id: number;
     name: string;
 }
 
-export interface TaskProgress {
-    description: string;
-    percentageComplete: number;
-    userId: number;
+interface TaskPriority {
+    id: number;
+    name: string;
 }
 
 export interface ProjectStatusUpdate {
@@ -222,7 +274,9 @@ export const tasksApi = {
   getMyTasks: () => 
     api.get('/tasks/my'),
 
-  create: (task: TaskCreatePayload) => api.post('/tasks', task),
+  create: (taskData: TaskCreatePayload): Promise<AxiosResponse<TaskItem>> => {
+    return api.post('/tasks', taskData);
+   },
   
   update: (id: number, task: string) => 
     api.put(`/tasks/${id}`, task),
@@ -275,7 +329,7 @@ export const usersApi = {
     api.put(`/users/${id}`, userData),
   
   getManagers: () => 
-    api.get('/users/managers'),
+    api.get('/users/role/manager'),
  
 
   getDevelopers: (projectId: number) =>

@@ -20,7 +20,6 @@ interface Project {
   status: string
 }
 
-// Sample data - in a real app, this would come from a database
 const sampleProjects: Project[] = [
   {
     id: "1",
@@ -28,7 +27,7 @@ const sampleProjects: Project[] = [
     client: "RetailCorp Inc.",
     startDate: "2023-06-15",
     endDate: "2023-12-15",
-    projectManager: "Jane Smith",
+    projectManager: "Anas Bzioui",
     status: "In Progress",
   },
   {
@@ -37,7 +36,7 @@ const sampleProjects: Project[] = [
     client: "ServicePro Ltd.",
     startDate: "2023-07-01",
     endDate: "2023-10-30",
-    projectManager: "John Doe",
+    projectManager: "Anas Bzioui",
     status: "Planning",
   },
   {

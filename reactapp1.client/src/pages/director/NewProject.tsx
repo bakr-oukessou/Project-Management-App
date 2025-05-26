@@ -1,236 +1,97 @@
-"use client"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "../../components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
-import { Label } from "../../components/ui/label"
-import { Textarea } from "../../components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
-import { useToast } from "../../hooks/use-toast"
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import DashboardLayout from "../../components/dashboard-layout"
-
-interface ProjectFormData {
-  name: string
-  description: string
-  client: string
-  startDate: string
-  endDate: string
-  developmentDays: string
-  projectManager: string
-}
-
-interface ProjectFormErrors {
-  name?: string
-  description?: string
-  client?: string
-  startDate?: string
-  endDate?: string
-  developmentDays?: string
-  projectManager?: string
-}
-
-// Sample data - in a real app, this would come from a database
-const projectManagers: { id: string; name: string }[] = [
-  { id: "1", name: "Jane Smith" },
-  { id: "2", name: "John Doe" },
-  { id: "3", name: "Alice Johnson" },
-  { id: "4", name: "Bob Wilson" },
-  { id: "5", name: "Carol Martinez" },
-]
+import { projectsApi, usersApi } from "../../api/authService"
+//import { toast } from "../../hooks/use-toast"
 
 export default function NewProject() {
-  const navigate = useNavigate()
-  const { toast } = useToast()
-
-  const [formData, setFormData] = useState<ProjectFormData>({
-    name: "",
-    description: "",
-    client: "",
-    startDate: "",
-    endDate: "",
-    developmentDays: "",
-    projectManager: "",
-  })
-
-  const [errors, setErrors] = useState<ProjectFormErrors>({})
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Clear error when field is edited
-    if (errors[name as keyof ProjectFormErrors]) {
-      setErrors((prev) => ({ ...prev, [name as keyof ProjectFormErrors]: undefined }))
-    }
-  }
-
-  const handleSelectChange = (name: keyof ProjectFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Clear error when field is edited
-    if (errors[name as keyof ProjectFormErrors]) {
-      setErrors((prev) => ({ ...prev, [name as keyof ProjectFormErrors]: undefined }))
-    }
-  }
-
-  const validateForm = (): boolean => {
-    const newErrors: ProjectFormErrors = {}
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Project name is required"
-    }
-
-    if (!formData.client.trim()) {
-      newErrors.client = "Client name is required"
-    }
-
-    if (!formData.startDate) {
-      newErrors.startDate = "Start date is required"
-    }
-
-    if (!formData.endDate) {
-      newErrors.endDate = "End date is required"
-    } else if (formData.startDate && new Date(formData.endDate) <= new Date(formData.startDate)) {
-      newErrors.endDate = "End date must be after start date"
-    }
-
-    if (
-      !formData.developmentDays ||
-      isNaN(Number(formData.developmentDays)) ||
-      Number(formData.developmentDays) <= 0
-    ) {
-      newErrors.developmentDays = "Valid development days are required"
-    }
-
-    if (!formData.projectManager) {
-      newErrors.projectManager = "Project manager is required"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    if (!validateForm()) {
-      return
-    }
-
-    // In a real application, you would save the project to a database
-    // For demo purposes, we'll just simulate a successful creation
-
-    toast({
-      title: "Project created",
-      description: `Project "${formData.name}" has been created successfully.`,
+    const navigate = useNavigate()
+    const [form, setForm] = useState({
+        name: "",
+        description: "",
+        clientName: "",
+        startDate: "",
+        deadlineDate: "",
+        managerId: ""
     })
+    const [managers, setManagers] = useState<any[]>([])
 
-    navigate("/director/dashboard")
-  }
+    useEffect(() => {
+        const fetchManagers = async () => {
+            try {
+                const res = await usersApi.getManagers()
+                setManagers(res.data)
+            } catch (err) {
+                console.error("Failed to fetch managers", err)
+            }
+        }
+        fetchManagers()
+    }, [])
 
-  return (
-    <DashboardLayout title="Create New Project" userRole="director">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New Project</CardTitle>
-          <CardDescription>Enter the details for the new project</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Project Name</Label>
-              <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter a unique project name"
-              />
-              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-            </div>
+    const handleChange = (e: any) => {
+        setForm({ ...form, [e.target.name]: e.target.value })
+    }
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe the project"
-                rows={3}
-              />
-            </div>
+    const handleSubmit = async (e: any) => {
+        e.preventDefault()
+        try {
+            await projectsApi.create({
+                name: form.name,
+                description: form.description,
+                clientName: form.clientName,
+                startDate: form.startDate,
+                deadlineDate: form.deadlineDate,
+                managerId: Number(form.managerId),
+            })
+            //toast({ title: "Project created successfully!" })
+            navigate("/director/projects/index")
+        } catch (err) {
+            console.error("Failed to create project", err)
+            //toast({ title: "Error", description: "Could not create project", variant: "destructive" })
+        }
+    }
 
-            <div className="space-y-2">
-              <Label htmlFor="client">Client</Label>
-              <Input
-                id="client"
-                name="client"
-                value={formData.client}
-                onChange={handleChange}
-                placeholder="Client name or organization"
-              />
-              {errors.client && <p className="text-sm text-destructive">{errors.client}</p>}
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date</Label>
-                <Input id="startDate" name="startDate" type="date" value={formData.startDate} onChange={handleChange} />
-                {errors.startDate && <p className="text-sm text-destructive">{errors.startDate}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="endDate">End Date</Label>
-                <Input id="endDate" name="endDate" type="date" value={formData.endDate} onChange={handleChange} />
-                {errors.endDate && <p className="text-sm text-destructive">{errors.endDate}</p>}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="developmentDays">Development Days</Label>
-              <Input
-                id="developmentDays"
-                name="developmentDays"
-                type="number"
-                min="1"
-                value={formData.developmentDays}
-                onChange={handleChange}
-                placeholder="Number of days required for development"
-              />
-              {errors.developmentDays && <p className="text-sm text-destructive">{errors.developmentDays}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="projectManager">Project Manager</Label>
-              <Select
-                value={formData.projectManager}
-                onValueChange={(value) => handleSelectChange("projectManager", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a project manager" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projectManagers.map((manager) => (
-                    <SelectItem key={manager.id} value={manager.id}>
-                      {manager.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.projectManager && <p className="text-sm text-destructive">{errors.projectManager}</p>}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button type="button" variant="outline" onClick={() => navigate("/director/dashboard")}>
-              Cancel
-            </Button>
-            <Button type="submit">Create Project</Button>
-          </CardFooter>
-        </form>
-      </Card>
-    </DashboardLayout>
-  )
+    return (
+        <DashboardLayout title="Create New Project" userRole="director">
+            <Card>
+                <CardHeader>
+                    <CardTitle>New Project</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <Input name="name" placeholder="Project Name" value={form.name} onChange={handleChange} required />
+                        <textarea
+                            name="description"
+                            placeholder="Project Description"
+                            className="w-full border rounded px-3 py-2"
+                            value={form.description}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input name="clientName" placeholder="Client Name" value={form.clientName} onChange={handleChange} />
+                        <Input type="date" name="startDate" value={form.startDate} onChange={handleChange} required />
+                        <Input type="date" name="deadlineDate" value={form.deadlineDate} onChange={handleChange} required />
+                        <select
+                            name="managerId"
+                            className="w-full border rounded px-3 py-2"
+                            value={form.managerId}
+                            onChange={handleChange}
+                            required
+                        >
+                            <option value="">Select Manager</option>
+                            {managers.map((m) => (
+                                <option key={m.id} value={m.id}>
+                                    {m.firstName} {m.lastName} ({m.email})
+                                </option>
+                            ))}
+                        </select>
+                        <Button type="submit" className="w-full">Create Project</Button>
+                    </form>
+                </CardContent>
+            </Card>
+        </DashboardLayout>
+    )
 }

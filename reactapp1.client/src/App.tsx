@@ -24,46 +24,49 @@ import EditProfile from "./pages/developer/EditProfile"
 import { Toaster } from "./components/ui/toaster"
 import { ThemeProvider } from "./components/theme-provider"
 import ManagerProjectsPage from "./pages/manager/ManagerProjectsPage"
+import { AuthProvider } from "./context/AuthContext" // Import AuthProvider
 
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+        <AuthProvider> {/* Add AuthProvider here */}
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          {/* Director routes */}
-          <Route path="/director/dashboard" element={<DirectorDashboard />} />
-          <Route path="/director/projects/new" element={<NewProject />} />
-          <Route path="/director/projects/index" element={<ProjectsIndex />} />
-          <Route path="/director/projects/details/:id" element={<ProjectDetails />} />
-          <Route path="/director/projects/delete/:id" element={<DeleteProject />} />
-          <Route path="/director/projects/edit/:id" element={<EditProject />} />
-          <Route path="/director/projects/create" element={<CreateProject />} />
+            {/* Director routes */}
+            <Route path="/director/dashboard" element={<DirectorDashboard />} />
+            <Route path="/director/projects/new" element={<NewProject />} />
+            <Route path="/director/projects/index" element={<ProjectsIndex />} />
+            <Route path="/director/projects/details/:id" element={<ProjectDetails />} />
+            <Route path="/director/projects/delete/:id" element={<DeleteProject />} />
+            <Route path="/director/projects/edit/:id" element={<EditProject />} />
+            <Route path="/director/projects/create" element={<CreateProject />} />
 
-          {/* Manager routes */}
-          <Route path="/manager/dashboard" element={<ManagerDashboard />} />
-          <Route path="/manager/projects/:id" element={<ManagerProjectDetails />} />
-          <Route path="/manager/projects" element={<ManagerProjectsPage />} />
-          <Route path="/manager/projects/add-technologies/:id" element={<AddTechnologies />} />
-          <Route path="/manager/projects/form-team/:id" element={<FormTeam />} />
-          <Route path="/manager/projects/assign-tasks/:id" element={<AssignTasks />} />
+            {/* Manager routes */}
+            <Route path="/manager/dashboard" element={<ManagerDashboard />} />
+            <Route path="/manager/projects/:id" element={<ManagerProjectDetails />} />
+            <Route path="/manager/projects" element={<ManagerProjectsPage />} />
+            <Route path="/manager/projects/add-technologies/:id" element={<AddTechnologies />} />
+            <Route path="/manager/projects/form-team/:id" element={<FormTeam />} />
+            <Route path="/manager/projects/assign-tasks/:id" element={<AssignTasks />} />
 
-          {/* Developer routes */}
-          <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
-          <Route path="/developer/projects/:id" element={<DeveloperProjectDetails />} />
-          <Route path="/developer/profile" element={<DeveloperProfile />} />
-          <Route path="/developer/tasks/update-progress/:id" element={<UpdateProgress />} />
-          <Route path="/developer/tasks/view" element={<ViewTasks />} />
-          <Route path="/developer/projects/view" element={<ViewProjects />} />
-          <Route path="/developer/profile/edit" element={<EditProfile />} />
+            {/* Developer routes */}
+            <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+            <Route path="/developer/projects/:id" element={<DeveloperProjectDetails />} />
+            <Route path="/developer/profile" element={<DeveloperProfile />} />
+            <Route path="/developer/tasks/update-progress/:id" element={<UpdateProgress />} />
+            <Route path="/developer/tasks/view" element={<ViewTasks />} />
+            <Route path="/developer/projects/view" element={<ViewProjects />} />
+            <Route path="/developer/profile/edit" element={<EditProfile />} />
 
-          {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/error" replace />} />
-        </Routes>
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/error" replace />} />
+          </Routes>
+        </AuthProvider> {/* Close AuthProvider */}
         <Toaster />
       </Router>
     </ThemeProvider>

@@ -141,7 +141,7 @@ export default function DashboardLayout({ children, title, userRole }: Dashboard
                             variant="destructive"
                             onClick={() => {
                                 logout()
-                                window.location.href = "/login"
+                                window.location.href = "/"
                             }}
                         >
                             Confirm Logout
